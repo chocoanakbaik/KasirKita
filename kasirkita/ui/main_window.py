@@ -4,9 +4,10 @@ from __future__ import annotations
 import logging
 import re
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 from typing import Dict, Optional
 
+from kasirkita.infrastructure.backup import BackupError, DatabaseBackupService
 from kasirkita.infrastructure.product_repository import (
     DuplicateSKUError,
     ProductNotFoundError,
@@ -117,11 +118,13 @@ class MainWindow:
         catalog: ProductCatalog,
         checkout: CheckoutService,
         sales_history: SalesHistoryService,
+        backup_service: DatabaseBackupService,
     ) -> None:
         self.root = root
         self.catalog = catalog
         self.checkout_service = checkout
         self.sales_history = sales_history
+        self.backup_service = backup_service
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
         self._sales_rows: Dict[int, dict] = {}
@@ -366,6 +369,96 @@ class MainWindow:
         scroll.grid(row=1, column=1, sticky="ns")
         self.sales_tree.configure(yscrollcommand=scroll.set)
         self.sales_tree.bind("<Double-1>", lambda _event: self.view_selected_sale())
+
+        backup_actions = ttk.Frame(self.history_tab)
+        backup_actions.grid(row=2, column=0, sticky="ew", pady=(10, 0))
+        ttk.Button(backup_actions, text="Buat backup", command=self.create_backup).pack(
+            side="left"
+        )
+        ttk.Button(backup_actions, text="Pulihkan backup", command=self.restore_backup).pack(
+            side="left", padx=(8, 0)
+        )
+
+    def create_backup(self) -> None:
+        destination = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Simpan backup KasirKita",
+            defaultextension=".sqlite3",
+            filetypes=[("Database SQLite", "*.sqlite3"), ("Semua file", "*.*")],
+        )
+        if not destination:
+            return
+        try:
+            path = self.backup_service.create_backup(destination)
+            messagebox.showinfo(
+                "Backup berhasil",
+                "Backup database berhasil dibuat:\n" + str(path),
+                parent=self.root,
+            )
+        except BackupError as exc:
+            messagebox.showerror("Backup gagal", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Unexpected backup failure")
+            messagebox.showerror("Backup gagal", "Backup tidak dapat diselesaikan.", parent=self.root)
+
+    def restore_backup(self) -> None:
+        source = filedialog.askopenfilename(
+            parent=self.root,
+            title="Pilih file backup KasirKita",
+            filetypes=[("Database SQLite", "*.sqlite3 *.db"), ("Semua file", "*.*")],
+        )
+        if not source:
+            return
+        if not messagebox.askyesno(
+            "Konfirmasi pemulihan",
+            "Pemulihan akan mengganti data KasirKita saat ini dengan isi backup. "
+            "Lanjutkan hanya jika file backup benar dan buat backup data saat ini terlebih dahulu.",
+            parent=self.root,
+        ):
+            return
+        safety_path = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Simpan backup data saat ini sebelum pemulihan",
+            defaultextension=".sqlite3",
+            initialfile="kasirkita-sebelum-restore.sqlite3",
+            filetypes=[("Database SQLite", "*.sqlite3"), ("Semua file", "*.*")],
+        )
+        if not safety_path:
+            messagebox.showinfo(
+                "Pemulihan dibatalkan",
+                "Pilih lokasi backup data saat ini agar pemulihan dapat dilanjutkan dengan aman.",
+                parent=self.root,
+            )
+            return
+        try:
+            import os
+            source_path = os.path.normcase(os.path.abspath(source))
+            safety_backup_path = os.path.normcase(os.path.abspath(safety_path))
+            if source_path == safety_backup_path:
+                raise BackupError("File backup sumber dan backup pengaman harus berbeda.")
+            self.backup_service.create_backup(safety_path)
+            self.backup_service.restore_backup(source)
+            self.cart.clear()
+            self.received_var.set("")
+            self.refresh_cart()
+            self.refresh_products()
+            self.refresh_cashier_products()
+            self.refresh_sales()
+            messagebox.showinfo(
+                "Pemulihan berhasil",
+                "Database berhasil dipulihkan. Backup data sebelum pemulihan tersimpan di:\n"
+                + safety_path,
+                parent=self.root,
+            )
+        except BackupError as exc:
+            messagebox.showerror("Pemulihan gagal", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Unexpected restore failure")
+            messagebox.showerror(
+                "Pemulihan gagal",
+                "Pemulihan tidak dapat diselesaikan. Jangan hapus file backup atau database.",
+                parent=self.root,
+            )
 
     def refresh_sales(self) -> None:
         try:
