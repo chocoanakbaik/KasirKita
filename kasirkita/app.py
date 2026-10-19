@@ -16,6 +16,7 @@ from kasirkita.services.product_catalog import ProductCatalog
 from kasirkita.services.sales_history import SalesHistoryService
 from kasirkita.services.sales_report import SalesReportService
 from kasirkita.services.stock import StockService
+from kasirkita.services.tax_settings import TaxSettingsService
 from kasirkita.ui.main_window import MainWindow
 
 
@@ -69,7 +70,8 @@ def main() -> int:
         backup_service = DatabaseBackupService(connection, str(database_path))
         stock_service = StockService(connection)
         sales_report = SalesReportService(connection)
-        MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report)
+        tax_settings = TaxSettingsService(connection)
+        MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report, tax_settings)
         root.mainloop()
         return 0
     except Exception:
