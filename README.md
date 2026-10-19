@@ -43,7 +43,7 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 - Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan stok.
 - Transaksi tunai dengan validasi uang diterima dan kembalian, snapshot nama/harga produk, dan pengurangan stok atomik.
 - Pajak opsional dengan status nonaktif secara default, tarif yang dikonfigurasi pengguna, mode harga termasuk/tidak termasuk pajak, pembulatan integer, dan snapshot konfigurasi pajak pada transaksi.
-- Riwayat transaksi, detail struk, dan ekspor struk ke file TXT UTF-8 untuk dicetak melalui aplikasi teks/printer yang tersedia.
+- Riwayat transaksi, detail struk, ekspor struk TXT UTF-8, dan ekspor struk PDF dari snapshot transaksi tersimpan.
 - Ringkasan penjualan berdasarkan tanggal lokal komputer, dengan ekspor laporan CSV UTF-8, workbook Excel `.xlsx` (ringkasan dan rincian harian), serta laporan PDF A4 lanskap. Ekspor dokumen dibuat lokal; paket `openpyxl` dan `reportlab` disertakan pada build portable.
 - Kolom input SKU/barcode di halaman Kasir menerima kode yang diketik manual atau input scanner USB yang berperilaku seperti keyboard dan mengakhiri input dengan Enter. Untuk saat ini pencarian barcode menggunakan SKU produk yang tersimpan; kode internal yang disarankan berbentuk `KK-000001`. Nomor tersebut adalah identitas internal toko, bukan GTIN resmi GS1. Pembuatan label barcode visual dan kolom barcode terpisah belum selesai.
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
