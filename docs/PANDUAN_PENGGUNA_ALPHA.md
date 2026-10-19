@@ -11,6 +11,8 @@ Dokumen ini menjelaskan perilaku aplikasi yang sudah tersedia pada source saat i
 
 ## 2. Menambahkan produk
 
+Pada tab **Produk**, tombol **Ekspor katalog CSV** menyimpan hasil katalog yang sedang ditampilkan (termasuk filter pencarian aktif) ke CSV dengan pemisah titik koma dan encoding UTF-8 BOM agar lebih mudah dibuka di aplikasi spreadsheet.
+
 1. Buka tab **Produk**.
 2. Pilih **Tambah produk**.
 3. Isi SKU, nama, harga rupiah, dan stok awal.
@@ -55,7 +57,7 @@ Jika mode **Belum termasuk pajak** dipilih, pajak ditambahkan pada subtotal. Jik
 
 ## 6. Riwayat transaksi dan laporan
 
-- Tab **Riwayat transaksi** menampilkan transaksi tersimpan. Pilih transaksi lalu buka detail untuk melihat snapshot nama produk, harga, subtotal, pajak, total, dan pembayaran.
+- Tab **Riwayat transaksi** menampilkan transaksi tersimpan. Pilih transaksi lalu buka detail untuk melihat snapshot nama produk, harga, subtotal, pajak, total, dan pembayaran. Dari jendela detail, pilih **Simpan struk TXT** untuk mengekspor struk UTF-8 yang dapat dibuka atau dicetak melalui aplikasi lain.
 - Tab **Laporan** merangkum transaksi selesai dan unit terjual untuk rentang tanggal yang dimasukkan. Tanggal mengikuti zona waktu lokal komputer.
 - Mengubah harga atau nama produk tidak boleh mengubah snapshot pada transaksi lama.
 
