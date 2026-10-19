@@ -18,6 +18,7 @@ from kasirkita.services.sales_report import SalesReportService
 from kasirkita.services.stock import StockService
 from kasirkita.services.tax_settings import TaxSettingsService
 from kasirkita.ui.main_window import MainWindow
+from kasirkita.ui.splash_screen import SplashScreen
 
 
 def get_data_directory() -> Path:
@@ -72,6 +73,16 @@ def main() -> int:
         sales_report = SalesReportService(connection)
         tax_settings = TaxSettingsService(connection)
         MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report, tax_settings)
+        root.withdraw()
+        splash = SplashScreen(root)
+
+        def show_main_window() -> None:
+            if splash.winfo_exists():
+                splash.destroy()
+            root.deiconify()
+            root.lift()
+
+        root.after(1100, show_main_window)
         root.mainloop()
         return 0
     except Exception:
