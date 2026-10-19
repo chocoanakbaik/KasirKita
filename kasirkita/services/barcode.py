@@ -47,16 +47,16 @@ def find_product_by_code(connection: sqlite3.Connection, value: object) -> Optio
     row = connection.execute(
         """SELECT id, sku, name, unit_price_rupiah, stock_quantity, is_active
            FROM products
-           WHERE (sku = ? OR barcode = ?) AND is_active = 1
-           ORDER BY CASE WHEN barcode = ? THEN 0 ELSE 1 END, id LIMIT 1""",
-        (code, code, code),
+           WHERE sku = ? AND is_active = 1
+           ORDER BY id LIMIT 1""",
+        (code,),
     ).fetchone()
     if row is None:
         return None
     return {
         "id": int(row["id"]),
         "sku": str(row["sku"]),
-        "barcode": str(row["barcode"]) if row["barcode"] is not None else "",
+        "barcode": str(row["sku"]),
         "name": str(row["name"]),
         "unit_price_rupiah": int(row["unit_price_rupiah"]),
         "stock_quantity": int(row["stock_quantity"]),
