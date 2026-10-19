@@ -12,6 +12,7 @@ from kasirkita.infrastructure.database import DatabaseError, connect_database, i
 from kasirkita.infrastructure.product_repository import ProductRepository
 from kasirkita.services.checkout import CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog
+from kasirkita.services.sales_history import SalesHistoryService
 from kasirkita.ui.main_window import MainWindow
 
 
@@ -60,7 +61,8 @@ def main() -> int:
         root = tk.Tk()
         catalog = ProductCatalog(ProductRepository(connection))
         checkout = CheckoutService(connection)
-        MainWindow(root, catalog, checkout)
+        sales_history = SalesHistoryService(connection)
+        MainWindow(root, catalog, checkout, sales_history)
         root.mainloop()
         return 0
     except Exception:
