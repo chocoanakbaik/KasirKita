@@ -40,13 +40,13 @@ jobs:
           Copy-Item -Recurse dist/KasirKita package/KasirKita
           Copy-Item README.md package/README.md
           Copy-Item docs/PANDUAN_PENGGUNA_ALPHA.md package/PANDUAN_PENGGUNA.md
-          @'
-          KasirKita Desktop
-          Jalankan KasirKita.exe dari folder KasirKita.
-          Data aplikasi disimpan pada folder data pengguna Windows.
-          Jangan hapus folder data pengguna saat memperbarui aplikasi.
-          Backup data sebelum mengganti versi.
-          @' | Set-Content -Encoding UTF8 package/PETUNJUK.txt
+          @(
+            "KasirKita Desktop"
+            "Jalankan KasirKita.exe dari folder KasirKita."
+            "Data aplikasi disimpan pada folder data pengguna Windows."
+            "Jangan hapus folder data pengguna saat memperbarui aplikasi."
+            "Backup data sebelum mengganti versi."
+          ) | Set-Content -Encoding UTF8 package/PETUNJUK.txt
           Compress-Archive -Path package/* -DestinationPath KasirKita-Windows-Portable.zip -Force
           Get-FileHash KasirKita-Windows-Portable.zip -Algorithm SHA256 |
             ForEach-Object { "$($_.Hash)  KasirKita-Windows-Portable.zip" } |
