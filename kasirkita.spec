@@ -33,5 +33,6 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
+    icon=str(ASSETS / "icons" / "kasirkita.ico"),
     disable_windowed_traceback=False,
 )
