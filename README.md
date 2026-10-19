@@ -43,7 +43,7 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 - Transaksi tunai dengan validasi uang diterima dan kembalian, snapshot nama/harga produk, dan pengurangan stok atomik.
 - Pajak opsional dengan status nonaktif secara default, tarif yang dikonfigurasi pengguna, mode harga termasuk/tidak termasuk pajak, pembulatan integer, dan snapshot konfigurasi pajak pada transaksi.
 - Riwayat transaksi dan detail struk berdasarkan data yang tersimpan.
-- Ringkasan penjualan berdasarkan tanggal lokal komputer.
+- Ringkasan penjualan berdasarkan tanggal lokal komputer, dengan ekspor laporan CSV UTF-8 yang ramah Excel.
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
 - Database lokal SQLite dan log aplikasi lokal.
 
