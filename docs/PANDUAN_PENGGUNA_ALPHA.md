@@ -48,6 +48,7 @@ Pengurangan stok yang membuat stok negatif ditolak. Penjualan juga mengurangi st
 4. Periksa subtotal, pajak, dan total.
 5. Masukkan nominal uang yang diterima, lalu pilih **Proses pembayaran**.
 6. Periksa nomor struk dan kembalian pada konfirmasi hasil.
+7. Pada detail transaksi, struk dapat disimpan sebagai TXT atau PDF. File diekspor dari data transaksi yang tersimpan; ekspor tidak mengubah transaksi.
 
 Sebelum menyimpan penjualan, aplikasi membaca ulang harga dan stok dari database. Jika stok tidak cukup, produk tidak aktif, atau uang tidak cukup, transaksi ditolak. Jika salah satu langkah penyimpanan gagal, seluruh perubahan transaksi dan stok harus dibatalkan.
 
