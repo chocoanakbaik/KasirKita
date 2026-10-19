@@ -1,7 +1,11 @@
 """Pure formatting/input helpers used by the desktop interface."""
 import unittest
 
-from kasirkita.ui.main_window import format_rupiah, parse_rupiah_input
+from kasirkita.ui.main_window import (
+    format_rupiah,
+    parse_rupiah_input,
+    parse_tax_rate_basis_points,
+)
 
 
 class UIHelperTests(unittest.TestCase):
@@ -27,6 +31,18 @@ class UIHelperTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(ValueError):
                     parse_rupiah_input(value)
+
+    def test_tax_rate_parser_uses_exact_basis_points(self):
+        self.assertEqual(parse_tax_rate_basis_points("11"), 1100)
+        self.assertEqual(parse_tax_rate_basis_points("11,5"), 1150)
+        self.assertEqual(parse_tax_rate_basis_points("11.25"), 1125)
+        self.assertEqual(parse_tax_rate_basis_points("100"), 10000)
+
+    def test_tax_rate_parser_rejects_invalid_rates(self):
+        for value in ["", "-1", "101", "1.234", "1,234", "abc", "  "]:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    parse_tax_rate_basis_points(value)
 
     def test_parse_rejects_amount_above_supported_limit(self):
         with self.assertRaises(ValueError):
