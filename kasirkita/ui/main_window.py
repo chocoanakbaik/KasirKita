@@ -866,10 +866,15 @@ class MainWindow:
         ttk.Label(frame, text="Pembayaran: " + payment_text, wraplength=700).pack(
             anchor="w", pady=(10, 4)
         )
+        tax_description = (
+            sale["tax_label"] + " " + format_tax_rate(sale["tax_rate_basis_points"])
+            + (" (termasuk harga)" if sale["tax_mode"] == "inclusive" else " (di luar harga)")
+            if sale["tax_enabled"] else "Pajak nonaktif"
+        )
         ttk.Label(
             frame,
             text="Subtotal: " + format_rupiah(sale["subtotal_rupiah"])
-            + "  |  Pajak: " + format_rupiah(sale["tax_rupiah"])
+            + "  |  " + tax_description + ": " + format_rupiah(sale["tax_rupiah"])
             + "  |  Total: " + format_rupiah(sale["total_rupiah"]),
             font=("Segoe UI", 11, "bold"),
         ).pack(anchor="e", pady=(2, 0))
