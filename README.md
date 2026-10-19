@@ -46,6 +46,7 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 - Ringkasan penjualan berdasarkan tanggal lokal komputer, dengan ekspor laporan CSV UTF-8 yang ramah Excel.
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
 - Database lokal SQLite dan log aplikasi lokal.
+- Pemberitahuan bahwa aplikasi dapat melakukan kesalahan, dengan tautan bantuan yang membuka platform Choco AI di browser bawaan. Logo merek ditampilkan bila Pillow tersedia; aplikasi tetap berjalan tanpa Pillow.
 
 ## Menjalankan Pengujian
 
