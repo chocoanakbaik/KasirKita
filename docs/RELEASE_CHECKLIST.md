@@ -26,6 +26,8 @@
 - [ ] Add, edit, search, disable, and re-enable products.
 - [ ] Adjust stock and verify the audit trail.
 - [ ] Complete a cash sale and verify stock, payment, receipt, and report totals.
+- [ ] Test keyboard-emulated scanner input and manually typed SKU; unknown codes must not alter the cart.
+- [ ] Verify XLSX summary/daily sheets and PDF report readability, file extensions, and content.
 - [ ] Try insufficient cash and insufficient stock; verify no partial sale is saved.
 - [ ] Verify disabled-tax, exclusive-tax, and inclusive-tax cases against independently calculated examples.
 - [ ] Change tax settings and verify old receipt snapshots do not change.
