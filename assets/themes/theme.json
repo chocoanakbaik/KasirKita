@@ -1,0 +1,73 @@
+{
+  "theme_name": "KasirKita UMKM Light",
+  "version": 1,
+  "brand": {
+    "name": "KasirKita",
+    "tagline": "Usaha Lancar, Kasir Gampang.",
+    "logo_status": "awaiting_approved_logo"
+  },
+  "colors": {
+    "brand_navy": "#172033",
+    "brand_navy_deep": "#111827",
+    "brand_cyan": "#22D3EE",
+    "brand_cyan_hover": "#06B6D4",
+    "primary": "#2563EB",
+    "primary_hover": "#1D4ED8",
+    "background": "#F4F6FA",
+    "surface": "#FFFFFF",
+    "surface_muted": "#EEF2F7",
+    "border": "#D8DEE9",
+    "text_primary": "#172033",
+    "text_secondary": "#5B6475",
+    "text_muted": "#7B8495",
+    "success": "#15803D",
+    "success_surface": "#DCFCE7",
+    "warning": "#B45309",
+    "warning_surface": "#FEF3C7",
+    "danger": "#B91C1C",
+    "danger_surface": "#FEE2E2",
+    "focus_ring": "#38BDF8"
+  },
+  "typography": {
+    "font_family_preferred": "Segoe UI",
+    "font_family_fallback": "TkDefaultFont",
+    "body_size": 10,
+    "label_size": 9,
+    "section_size": 12,
+    "page_title_size": 18,
+    "total_amount_size": 25,
+    "weight_regular": "normal",
+    "weight_emphasis": "bold"
+  },
+  "spacing_px": {
+    "xxs": 2,
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "xxl": 32
+  },
+  "corners_px": {
+    "small": 4,
+    "medium": 8,
+    "large": 12
+  },
+  "motion_ms": {
+    "quick": 100,
+    "standard": 160,
+    "slow": 220
+  },
+  "accessibility": {
+    "minimum_interactive_target_px": 32,
+    "avoid_color_only_status": true,
+    "respect_reduced_motion_when_available": true
+  },
+  "compatibility": {
+    "offline_assets_only": true,
+    "remote_fonts": false,
+    "runtime_downloads": false,
+    "heavy_animation": false,
+    "target": "Windows desktop including older low-spec devices; direct compatibility remains subject to testing"
+  }
+}
