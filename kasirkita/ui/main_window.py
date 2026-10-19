@@ -838,6 +838,59 @@ class MainWindow:
             logger.exception("Failed to build sales report")
             messagebox.showerror("Kesalahan", "Laporan penjualan gagal dibuat.", parent=self.root)
 
+    def export_products_csv(self) -> None:
+        """Export the current product catalogue view to a spreadsheet-friendly CSV."""
+        try:
+            products = self.catalog.list_products(
+                self.product_search.get(), include_inactive=True
+            )
+        except Exception:
+            logger.exception("Failed to prepare product catalogue for export")
+            messagebox.showerror(
+                "Ekspor gagal",
+                "Katalog produk tidak dapat disiapkan untuk ekspor.",
+                parent=self.root,
+            )
+            return
+
+        destination = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Ekspor katalog produk",
+            defaultextension=".csv",
+            filetypes=[("CSV UTF-8", "*.csv"), ("Semua file", "*.*")],
+            initialfile="katalog-produk.csv",
+        )
+        if not destination:
+            return
+        try:
+            path = Path(destination).expanduser()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("w", encoding="utf-8-sig", newline="") as stream:
+                writer = csv.writer(stream, delimiter=";", lineterminator="\n")
+                writer.writerow(
+                    ["SKU", "Nama produk", "Harga (rupiah)", "Stok", "Status"]
+                )
+                for product in products:
+                    writer.writerow([
+                        product["sku"],
+                        product["name"],
+                        product["unit_price_rupiah"],
+                        product["stock_quantity"],
+                        "Aktif" if product["is_active"] else "Nonaktif",
+                    ])
+            messagebox.showinfo(
+                "Ekspor berhasil",
+                "Katalog produk berhasil disimpan ke:\n" + str(path),
+                parent=self.root,
+            )
+        except (OSError, csv.Error, ValueError):
+            logger.exception("Failed to write product catalogue CSV")
+            messagebox.showerror(
+                "Ekspor gagal",
+                "File katalog tidak dapat disimpan. Periksa izin folder dan ruang disk.",
+                parent=self.root,
+            )
+
     def export_report_csv(self) -> None:
         """Export the currently selected date range as an Excel-friendly CSV."""
         try:
