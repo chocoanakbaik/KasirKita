@@ -3,6 +3,7 @@ import sqlite3
 import unittest
 
 from kasirkita.infrastructure.database import connect_database, initialize_database
+from kasirkita.services.tax_settings import TaxSettingsService
 from kasirkita.services.checkout import (
     CheckoutService,
     InsufficientStockError,
@@ -160,6 +161,51 @@ class CheckoutTests(unittest.TestCase):
         )
         self.assertEqual(
             self.connection.execute("SELECT COUNT(*) FROM stock_movements").fetchone()[0], 0
+        )
+
+    def test_exclusive_tax_is_previewed_and_snapshotted_on_sale(self):
+        settings = TaxSettingsService(self.connection)
+        settings.save_config(True, 1100, "exclusive", "PPN")
+        items = [{"product_id": self.teh_id, "quantity": 2}]
+        preview = self.checkout_service.preview(items)
+        self.assertEqual(preview["subtotal_rupiah"], 9000)
+        self.assertEqual(preview["tax_rupiah"], 990)
+        self.assertEqual(preview["total_rupiah"], 9990)
+
+        result = self.checkout_service.checkout(items, amount_received_rupiah=10000)
+        self.assertEqual(result["tax_rupiah"], 990)
+        self.assertEqual(result["total_rupiah"], 9990)
+        self.assertEqual(result["change_rupiah"], 10)
+        sale = self.connection.execute(
+            """
+            SELECT subtotal_rupiah, tax_rupiah, total_rupiah, tax_enabled,
+                   tax_rate_basis_points, tax_mode, tax_label
+            FROM sales WHERE id = ?
+            """,
+            (result["sale_id"],),
+        ).fetchone()
+        self.assertEqual(tuple(sale), (9000, 990, 9990, 1, 1100, "exclusive", "PPN"))
+
+    def test_inclusive_tax_keeps_customer_total_equal_to_gross_price(self):
+        TaxSettingsService(self.connection).save_config(True, 1000, "inclusive", "PPN")
+        result = self.checkout_service.checkout(
+            [{"product_id": self.teh_id, "quantity": 2}],
+            amount_received_rupiah=9000,
+        )
+        self.assertEqual(result["subtotal_rupiah"], 8182)
+        self.assertEqual(result["tax_rupiah"], 818)
+        self.assertEqual(result["total_rupiah"], 9000)
+
+    def test_insufficient_cash_includes_configured_tax(self):
+        TaxSettingsService(self.connection).save_config(True, 1100, "exclusive", "PPN")
+        with self.assertRaises(PaymentError):
+            self.checkout_service.checkout(
+                [{"product_id": self.teh_id, "quantity": 2}],
+                amount_received_rupiah=9000,
+            )
+        self.assertEqual(self.stock(self.teh_id), 10)
+        self.assertEqual(
+            self.connection.execute("SELECT COUNT(*) FROM sales").fetchone()[0], 0
         )
 
     def test_zero_total_sale_does_not_create_zero_payment_record(self):
