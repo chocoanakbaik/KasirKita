@@ -5,6 +5,7 @@ import logging
 import re
 import tkinter as tk
 from datetime import date
+from decimal import Decimal, InvalidOperation
 from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 from typing import Dict, Optional
@@ -18,6 +19,7 @@ from kasirkita.services.checkout import CheckoutError, CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog, ProductValidationError
 from kasirkita.services.sales_history import SalesHistoryService, SalesHistoryValidationError
 from kasirkita.services.sales_report import SalesReportService, SalesReportValidationError
+from kasirkita.services.tax_settings import TaxSettingsError, TaxSettingsService
 from kasirkita.services.stock import StockAdjustmentError, StockService
 
 logger = logging.getLogger("kasirkita.ui")
@@ -41,6 +43,29 @@ def parse_rupiah_input(value: str) -> int:
     if amount > 9_000_000_000_000_000:
         raise ValueError("Nominal melebihi batas yang didukung.")
     return amount
+
+
+def parse_tax_rate_basis_points(value: str) -> int:
+    """Parse a percentage with at most two decimal places into basis points."""
+    if not isinstance(value, str):
+        raise ValueError("Tarif pajak harus berupa persentase.")
+    cleaned = value.strip().replace(",", ".")
+    if not re.fullmatch(r"(?:[0-9]{1,3})(?:\\.[0-9]{1,2})?", cleaned):
+        raise ValueError("Tarif gunakan angka 0 sampai 100, maksimal dua angka desimal.")
+    try:
+        rate = Decimal(cleaned)
+    except InvalidOperation as exc:
+        raise ValueError("Tarif pajak tidak valid.") from exc
+    if rate < 0 or rate > 100:
+        raise ValueError("Tarif pajak harus antara 0% dan 100%.")
+    return int(rate * 100)
+
+
+def format_tax_rate(rate_basis_points: int) -> str:
+    whole, fraction = divmod(rate_basis_points, 100)
+    if fraction == 0:
+        return str(whole) + "%"
+    return (str(whole) + "," + format(fraction, "02d").rstrip("0")) + "%"
 
 
 class ProductDialog(tk.Toplevel):
@@ -201,6 +226,7 @@ class MainWindow:
         backup_service: DatabaseBackupService,
         stock_service: StockService,
         sales_report: SalesReportService,
+        tax_settings: TaxSettingsService,
     ) -> None:
         self.root = root
         self.catalog = catalog
@@ -209,6 +235,7 @@ class MainWindow:
         self.backup_service = backup_service
         self.stock_service = stock_service
         self.sales_report = sales_report
+        self.tax_settings = tax_settings
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
         self._sales_rows: Dict[int, dict] = {}
@@ -223,6 +250,7 @@ class MainWindow:
         self.refresh_cart()
         self.refresh_sales()
         self.refresh_report()
+        self.load_tax_settings()
 
     def _configure_style(self) -> None:
         style = ttk.Style(self.root)
@@ -252,14 +280,17 @@ class MainWindow:
         self.products_tab = ttk.Frame(self.tabs, padding=12)
         self.history_tab = ttk.Frame(self.tabs, padding=12)
         self.report_tab = ttk.Frame(self.tabs, padding=12)
+        self.settings_tab = ttk.Frame(self.tabs, padding=12)
         self.tabs.add(self.cashier_tab, text="Kasir")
         self.tabs.add(self.products_tab, text="Produk")
         self.tabs.add(self.history_tab, text="Riwayat transaksi")
         self.tabs.add(self.report_tab, text="Laporan")
+        self.tabs.add(self.settings_tab, text="Pengaturan")
         self._build_cashier_tab()
         self._build_products_tab()
         self._build_history_tab()
         self._build_report_tab()
+        self._build_settings_tab()
 
     def _build_cashier_tab(self) -> None:
         self.cashier_tab.columnconfigure(0, weight=3)
@@ -355,8 +386,15 @@ class MainWindow:
 
         totals = ttk.Frame(cart_frame)
         totals.grid(row=2, column=0, columnspan=2, sticky="ew")
-        ttk.Label(totals, text="Total transaksi", style="Subheader.TLabel").pack(anchor="w")
+        self.subtotal_var = tk.StringVar(value=format_rupiah(0))
+        self.tax_label_var = tk.StringVar(value="Pajak (nonaktif)")
+        self.tax_var = tk.StringVar(value=format_rupiah(0))
         self.total_var = tk.StringVar(value=format_rupiah(0))
+        ttk.Label(totals, text="Subtotal").pack(anchor="w")
+        ttk.Label(totals, textvariable=self.subtotal_var).pack(anchor="w", pady=(1, 5))
+        ttk.Label(totals, textvariable=self.tax_label_var).pack(anchor="w")
+        ttk.Label(totals, textvariable=self.tax_var).pack(anchor="w", pady=(1, 5))
+        ttk.Label(totals, text="Total transaksi", style="Subheader.TLabel").pack(anchor="w")
         ttk.Label(totals, textvariable=self.total_var, font=("Segoe UI", 20, "bold")).pack(
             anchor="w", pady=(2, 10)
         )
@@ -368,7 +406,7 @@ class MainWindow:
         )
         ttk.Label(
             totals,
-            text="Pajak belum diterapkan pada versi awal ini.",
+            text="Tarif pajak mengikuti pengaturan usaha; periksa status pajak dan ketentuan yang berlaku.",
             wraplength=280,
             foreground="#596777",
         ).pack(anchor="w")
@@ -558,6 +596,95 @@ class MainWindow:
         except Exception:
             logger.exception("Failed to build sales report")
             messagebox.showerror("Kesalahan", "Laporan penjualan gagal dibuat.", parent=self.root)
+
+    def _build_settings_tab(self) -> None:
+        self.settings_tab.columnconfigure(0, weight=1)
+        frame = ttk.LabelFrame(self.settings_tab, text="Pajak penjualan / PPN", padding=18)
+        frame.grid(row=0, column=0, sticky="nw")
+        frame.columnconfigure(1, weight=1)
+        self.tax_enabled_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            frame,
+            text="Aktifkan pajak untuk transaksi baru",
+            variable=self.tax_enabled_var,
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 12))
+        ttk.Label(frame, text="Label pajak").grid(row=1, column=0, sticky="w", pady=6, padx=(0, 16))
+        self.tax_label_entry = ttk.Entry(frame, width=32)
+        self.tax_label_entry.insert(0, "PPN")
+        self.tax_label_entry.grid(row=1, column=1, sticky="ew", pady=6)
+        ttk.Label(frame, text="Tarif (%)").grid(row=2, column=0, sticky="w", pady=6)
+        self.tax_rate_entry = ttk.Entry(frame, width=32)
+        self.tax_rate_entry.insert(0, "0")
+        self.tax_rate_entry.grid(row=2, column=1, sticky="ew", pady=6)
+        ttk.Label(frame, text="Cara memasukkan harga").grid(
+            row=3, column=0, sticky="w", pady=6
+        )
+        self.tax_mode_var = tk.StringVar(value="exclusive")
+        self.tax_mode_combo = ttk.Combobox(
+            frame,
+            textvariable=self.tax_mode_var,
+            values=("Belum termasuk pajak", "Sudah termasuk pajak"),
+            state="readonly",
+            width=29,
+        )
+        self.tax_mode_combo.grid(row=3, column=1, sticky="ew", pady=6)
+        self.tax_mode_combo.set("Belum termasuk pajak")
+        ttk.Button(frame, text="Simpan pengaturan pajak", command=self.save_tax_settings).grid(
+            row=4, column=0, columnspan=2, sticky="ew", pady=(12, 8)
+        )
+        ttk.Label(
+            frame,
+            text=(
+                "Pajak nonaktif secara default. Tarif tidak diisi otomatis. "
+                "Masukkan tarif yang sesuai dengan status usaha dan aturan yang berlaku. "
+                "Pengaturan ini adalah alat hitung, bukan sertifikasi kepatuhan pajak."
+            ),
+            wraplength=520,
+            foreground="#596777",
+        ).grid(row=5, column=0, columnspan=2, sticky="w", pady=(4, 0))
+
+    def load_tax_settings(self) -> None:
+        try:
+            config = self.tax_settings.get_config()
+            self.tax_enabled_var.set(config["enabled"])
+            self.tax_rate_entry.delete(0, "end")
+            self.tax_rate_entry.insert(0, format_tax_rate(config["rate_basis_points"]).replace("%", ""))
+            self.tax_label_entry.delete(0, "end")
+            self.tax_label_entry.insert(0, config["label"])
+            self.tax_mode_combo.set(
+                "Sudah termasuk pajak" if config["mode"] == "inclusive"
+                else "Belum termasuk pajak"
+            )
+        except TaxSettingsError:
+            logger.exception("Stored tax settings are invalid")
+            messagebox.showerror(
+                "Pengaturan pajak tidak valid",
+                "Pengaturan pajak tersimpan tidak valid. Pajak tidak boleh digunakan sampai diperbaiki.",
+                parent=self.root,
+            )
+
+    def save_tax_settings(self) -> None:
+        try:
+            rate = parse_tax_rate_basis_points(self.tax_rate_entry.get())
+            mode = "inclusive" if self.tax_mode_combo.get() == "Sudah termasuk pajak" else "exclusive"
+            config = self.tax_settings.save_config(
+                self.tax_enabled_var.get(),
+                rate,
+                mode,
+                self.tax_label_entry.get(),
+            )
+            self.refresh_cart()
+            messagebox.showinfo(
+                "Pengaturan tersimpan",
+                "Pengaturan pajak untuk transaksi baru berhasil disimpan. "
+                "Transaksi lama tetap menggunakan catatan pajak saat transaksi dibuat.",
+                parent=self.root,
+            )
+        except (ValueError, TaxSettingsError) as exc:
+            messagebox.showerror("Pengaturan tidak valid", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Failed to save tax settings")
+            messagebox.showerror("Kesalahan", "Pengaturan pajak gagal disimpan.", parent=self.root)
 
     def create_backup(self) -> None:
         destination = filedialog.asksaveasfilename(
