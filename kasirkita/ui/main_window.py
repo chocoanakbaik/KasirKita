@@ -29,7 +29,7 @@ def parse_rupiah_input(value: str) -> int:
     if not isinstance(value, str):
         raise ValueError("Masukkan nominal dalam angka rupiah.")
     cleaned = value.strip()
-    if not re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:\\.[0-9]{3})+)", cleaned):
+    if not re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:\.[0-9]{3})+)", cleaned):
         raise ValueError("Nominal harus berupa angka bulat. Contoh: 25000 atau 25.000.")
     amount = int(cleaned.replace(".", ""))
     if amount > 9_000_000_000_000_000:
