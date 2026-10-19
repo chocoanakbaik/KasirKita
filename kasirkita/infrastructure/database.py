@@ -166,9 +166,19 @@ def initialize_database(connection: sqlite3.Connection) -> None:
                 + "."
             )
 
-        with transaction(connection):
-            connection.executescript(_SCHEMA_SQL)
-            connection.execute("PRAGMA user_version = 1")
+        try:
+            # executescript() controls its own transaction boundaries, so the
+            # BEGIN/COMMIT must be part of the script rather than wrapped by
+            # the transaction() context manager.
+            connection.executescript(
+                "BEGIN IMMEDIATE;\n"
+                + _SCHEMA_SQL
+                + "\nPRAGMA user_version = 1;\nCOMMIT;"
+            )
+        except sqlite3.Error:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
     except DatabaseError:
         raise
     except sqlite3.Error as exc:
