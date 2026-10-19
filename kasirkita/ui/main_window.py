@@ -538,7 +538,7 @@ class MainWindow:
 
         product_frame = ttk.Frame(self.cashier_tab)
         product_frame.grid(row=1, column=0, sticky="nsew")
-        product_frame.rowconfigure(1, weight=1)
+        product_frame.rowconfigure(3, weight=1)
         product_frame.columnconfigure(0, weight=1)
         search_frame = ttk.Frame(product_frame)
         search_frame.grid(row=0, column=0, sticky="ew", pady=(0, 8))
@@ -550,6 +550,20 @@ class MainWindow:
         ttk.Button(search_frame, text="Cari", command=self.refresh_cashier_products).grid(
             row=0, column=1, padx=(6, 0)
         )
+        barcode_frame = ttk.Frame(product_frame)
+        barcode_frame.grid(row=1, column=0, sticky="ew", pady=(0, 8))
+        ttk.Label(barcode_frame, text="Barcode / SKU").pack(side="left")
+        self.barcode_var = tk.StringVar()
+        self.barcode_entry = ttk.Entry(barcode_frame, textvariable=self.barcode_var)
+        self.barcode_entry.pack(side="left", fill="x", expand=True, padx=8)
+        self.barcode_entry.bind("<Return>", self.scan_barcode_to_cart)
+        ttk.Button(barcode_frame, text="Cari & tambah", command=self.scan_barcode_to_cart).pack(side="left")
+        ttk.Label(
+            product_frame,
+            text="Scanner USB mode keyboard dapat langsung mengirim kode ke kolom ini. Tanpa scanner, ketik SKU lalu tekan Enter.",
+            foreground="#596777",
+            wraplength=470,
+        ).grid(row=2, column=0, sticky="w", pady=(0, 6))
 
         self.cashier_product_tree = ttk.Treeview(
             product_frame,
@@ -565,16 +579,16 @@ class MainWindow:
         ]:
             self.cashier_product_tree.heading(key, text=label)
             self.cashier_product_tree.column(key, width=width, anchor="w")
-        self.cashier_product_tree.grid(row=1, column=0, sticky="nsew")
+        self.cashier_product_tree.grid(row=3, column=0, sticky="nsew")
         product_scroll = ttk.Scrollbar(
             product_frame, orient="vertical", command=self.cashier_product_tree.yview
         )
-        product_scroll.grid(row=1, column=1, sticky="ns")
+        product_scroll.grid(row=3, column=1, sticky="ns")
         self.cashier_product_tree.configure(yscrollcommand=product_scroll.set)
         self.cashier_product_tree.bind("<Double-1>", lambda _event: self.add_selected_to_cart())
 
         add_frame = ttk.Frame(product_frame)
-        add_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        add_frame.grid(row=4, column=0, sticky="ew", pady=(8, 0))
         ttk.Label(add_frame, text="Jumlah").pack(side="left")
         self.quantity_var = tk.StringVar(value="1")
         ttk.Entry(add_frame, textvariable=self.quantity_var, width=8).pack(
@@ -768,6 +782,12 @@ class MainWindow:
         ttk.Button(toolbar, text="Ekspor CSV", command=self.export_report_csv).pack(
             side="left", padx=(6, 0)
         )
+        ttk.Button(toolbar, text="Ekspor Excel", command=self.export_report_xlsx).pack(
+            side="left", padx=(6, 0)
+        )
+        ttk.Button(toolbar, text="Ekspor PDF", command=self.export_report_pdf).pack(
+            side="left", padx=(6, 0)
+        )
         ttk.Label(
             toolbar,
             text="Tanggal mengikuti zona waktu komputer.",
@@ -931,6 +951,39 @@ class MainWindow:
         except Exception:
             logger.exception("Unexpected sales report export failure")
             messagebox.showerror("Ekspor gagal", "File laporan tidak dapat disimpan.", parent=self.root)
+
+    def _export_report_document(self, kind: str) -> None:
+        try:
+            report = self.sales_report.summarize(
+                self.report_start_var.get().strip(), self.report_end_var.get().strip()
+            )
+        except SalesReportValidationError as exc:
+            messagebox.showerror("Rentang tanggal tidak valid", str(exc), parent=self.root)
+            return
+        extension = ".xlsx" if kind == "xlsx" else ".pdf"
+        title = "Ekspor laporan Excel" if kind == "xlsx" else "Ekspor laporan PDF"
+        destination = filedialog.asksaveasfilename(
+            parent=self.root, title=title, defaultextension=extension,
+            filetypes=[(extension.upper() + " file", "*" + extension), ("Semua file", "*.*")],
+            initialfile="laporan-penjualan-" + report["start_date"] + "-hingga-" + report["end_date"] + extension,
+        )
+        if not destination:
+            return
+        try:
+            from kasirkita.services.document_export import (
+                DocumentExportError, export_sales_report_pdf, export_sales_report_xlsx,
+            )
+            path = export_sales_report_xlsx(report, destination) if kind == "xlsx" else export_sales_report_pdf(report, destination)
+            messagebox.showinfo("Ekspor berhasil", "Laporan berhasil disimpan:\n" + str(path), parent=self.root)
+        except Exception as exc:
+            logger.exception("Report document export failed")
+            messagebox.showerror("Ekspor gagal", str(exc) if isinstance(exc, DocumentExportError) else "File laporan tidak dapat disimpan.", parent=self.root)
+
+    def export_report_xlsx(self) -> None:
+        self._export_report_document("xlsx")
+
+    def export_report_pdf(self) -> None:
+        self._export_report_document("pdf")
 
     def _build_settings_tab(self) -> None:
         self.settings_tab.columnconfigure(0, weight=1)
@@ -1419,6 +1472,42 @@ class MainWindow:
         except Exception:
             logger.exception("Failed to change product active state")
             messagebox.showerror("Kesalahan", "Status produk gagal diubah.", parent=self.root)
+
+    def scan_barcode_to_cart(self, _event=None) -> None:
+        """Handle keyboard-emulating USB scanner input or a manually typed SKU."""
+        from kasirkita.services.barcode import BarcodeValidationError, normalize_barcode
+        code = self.barcode_var.get()
+        try:
+            code = normalize_barcode(code)
+            matches = self.catalog.list_products(code, include_inactive=False)
+            product = next((item for item in matches if item["sku"] == code), None)
+            if product is None:
+                messagebox.showwarning(
+                    "Kode tidak ditemukan",
+                    "Belum ada produk aktif dengan SKU/barcode tersebut. Tambahkan produk terlebih dahulu atau periksa kodenya.",
+                    parent=self.root,
+                )
+                self.barcode_entry.focus_set()
+                self.barcode_entry.selection_range(0, "end")
+                return
+            quantity_text = self.quantity_var.get().strip()
+            if not quantity_text.isdigit() or int(quantity_text) <= 0:
+                raise ValueError("Jumlah harus berupa bilangan bulat positif.")
+            quantity = int(quantity_text)
+            if quantity > 2_147_483_647:
+                raise ValueError("Jumlah melebihi batas yang didukung.")
+            new_quantity = self.cart.get(product["id"], 0) + quantity
+            if new_quantity > product["stock_quantity"]:
+                raise ValueError("Jumlah di keranjang melebihi stok yang tersedia.")
+            self.cart[product["id"]] = new_quantity
+            self.barcode_var.set("")
+            self.refresh_cart()
+            self.barcode_entry.focus_set()
+        except (BarcodeValidationError, ValueError, ProductValidationError) as exc:
+            messagebox.showerror("Kode / jumlah tidak valid", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Barcode lookup failed")
+            messagebox.showerror("Kesalahan", "Produk tidak dapat dicari dari kode tersebut.", parent=self.root)
 
     def add_selected_to_cart(self) -> None:
         selection = self.cashier_product_tree.selection()
