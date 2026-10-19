@@ -19,6 +19,7 @@ from kasirkita.services.checkout import CheckoutError, CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog, ProductValidationError
 from kasirkita.services.sales_history import SalesHistoryService, SalesHistoryValidationError
 from kasirkita.services.sales_report import SalesReportService, SalesReportValidationError
+from kasirkita.services.report_export import SalesReportExportError, export_sales_report_csv
 from kasirkita.services.tax_settings import TaxSettingsError, TaxSettingsService
 from kasirkita.services.stock import StockAdjustmentError, StockService
 
@@ -595,6 +596,9 @@ class MainWindow:
         ttk.Button(toolbar, text="Buat laporan", command=self.refresh_report).pack(
             side="left", padx=(8, 0)
         )
+        ttk.Button(toolbar, text="Ekspor CSV", command=self.export_report_csv).pack(
+            side="left", padx=(6, 0)
+        )
         ttk.Label(
             toolbar,
             text="Tanggal mengikuti zona waktu komputer.",
@@ -664,6 +668,47 @@ class MainWindow:
         except Exception:
             logger.exception("Failed to build sales report")
             messagebox.showerror("Kesalahan", "Laporan penjualan gagal dibuat.", parent=self.root)
+
+    def export_report_csv(self) -> None:
+        """Export the currently selected date range as an Excel-friendly CSV."""
+        try:
+            report = self.sales_report.summarize(
+                self.report_start_var.get().strip(),
+                self.report_end_var.get().strip(),
+            )
+        except SalesReportValidationError as exc:
+            messagebox.showerror("Rentang tanggal tidak valid", str(exc), parent=self.root)
+            return
+        except Exception:
+            logger.exception("Failed to prepare sales report for export")
+            messagebox.showerror("Ekspor gagal", "Laporan penjualan tidak dapat disiapkan.", parent=self.root)
+            return
+
+        destination = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Ekspor laporan penjualan",
+            defaultextension=".csv",
+            filetypes=[("CSV UTF-8", "*.csv"), ("Semua file", "*.*")],
+            initialfile="laporan-penjualan-"
+            + report["start_date"]
+            + "-hingga-"
+            + report["end_date"]
+            + ".csv",
+        )
+        if not destination:
+            return
+        try:
+            path = export_sales_report_csv(report, destination)
+            messagebox.showinfo(
+                "Ekspor berhasil",
+                "Laporan CSV berhasil disimpan:\\n" + str(path),
+                parent=self.root,
+            )
+        except SalesReportExportError as exc:
+            messagebox.showerror("Ekspor gagal", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Unexpected sales report export failure")
+            messagebox.showerror("Ekspor gagal", "File laporan tidak dapat disimpan.", parent=self.root)
 
     def _build_settings_tab(self) -> None:
         self.settings_tab.columnconfigure(0, weight=1)
