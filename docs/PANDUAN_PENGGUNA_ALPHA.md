@@ -28,7 +28,7 @@ Produk yang sudah dipakai dalam transaksi tidak dihapus dari histori. Gunakan st
 
 Di halaman Kasir tersedia kolom **Barcode / SKU**. Ketik SKU produk yang sudah terdaftar lalu tekan Enter, atau gunakan scanner USB yang berperilaku seperti keyboard dan mengirim Enter setelah kode. Produk aktif akan masuk ke keranjang; pemindaian berulang menambah jumlah sesuai kolom Jumlah. Kode tidak dikenal akan menampilkan peringatan. Tanpa scanner, pengujian tetap dapat dilakukan dengan mengetik SKU secara manual.
 
-Saat ini nilai yang dicari adalah SKU produk, bukan kolom barcode pabrikan yang terpisah. Pada formulir produk baru, tombol **Buat kode otomatis** akan memilih SKU internal `KK-000001` dan seterusnya yang belum digunakan. Kode internal tidak sama dengan GTIN resmi GS1; jangan mengklaimnya sebagai identitas resmi perdagangan global. Kolom barcode pabrikan terpisah dan pembuatan gambar/label barcode untuk dicetak belum tersedia.
+Saat ini nilai yang dicari adalah SKU produk, bukan kolom barcode pabrikan yang terpisah. Pada formulir produk baru, tombol **Buat kode otomatis** akan memilih SKU internal `KK-000001` dan seterusnya yang belum digunakan. Kode internal tidak sama dengan GTIN resmi GS1; jangan mengklaimnya sebagai identitas resmi perdagangan global. Kolom barcode pabrikan terpisah belum tersedia. Untuk membuat label, pilih produk di katalog lalu tekan **Buat label barcode SVG**. Hasilnya adalah gambar vektor Code 128 berdasarkan SKU, bukan GTIN resmi. Cetak pada ukuran yang menjaga garis tetap jelas, lalu uji pemindaian dengan perangkat yang mendukung Code 128.
 
 ## 4. Penyesuaian stok
 
