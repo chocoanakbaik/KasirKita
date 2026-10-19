@@ -1,7 +1,7 @@
 """Deterministic sales summaries derived from persisted completed sales."""
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 import sqlite3
 from typing import List
 
@@ -36,57 +36,68 @@ class SalesReportService:
         if (end - start).days > 3660:
             raise SalesReportValidationError("Rentang laporan maksimal 10 tahun.")
 
-        start_bound = start.isoformat() + "T00:00:00.000Z"
-        end_bound = (end + timedelta(days=1)).isoformat() + "T00:00:00.000Z"
-        totals = self._connection.execute(
+        # Date inputs represent the computer's local calendar. Convert local
+        # midnight boundaries to UTC because database timestamps are stored in UTC.
+        # Keep millisecond precision consistent with SQLite strftime('%f') values.
+        start_utc = datetime.combine(start, time.min).astimezone(timezone.utc)
+        end_utc = datetime.combine(end + timedelta(days=1), time.min).astimezone(timezone.utc)
+
+        def _utc_bound(value: datetime) -> str:
+            return value.strftime("%Y-%m-%dT%H:%M:%S.") + format(
+                value.microsecond // 1000, "03d"
+            ) + "Z"
+
+        start_bound = _utc_bound(start_utc)
+        end_bound = _utc_bound(end_utc)
+        sale_rows = self._connection.execute(
             """
-            SELECT COUNT(*) AS sales_count,
-                   COALESCE(SUM(total_rupiah), 0) AS total_rupiah,
-                   COALESCE(SUM(tax_rupiah), 0) AS tax_rupiah
+            SELECT id, total_rupiah, tax_rupiah, created_at
             FROM sales
             WHERE status = 'completed' AND created_at >= ? AND created_at < ?
+            ORDER BY created_at, id
             """,
             (start_bound, end_bound),
-        ).fetchone()
-        items = self._connection.execute(
+        ).fetchall()
+
+        daily_data = {}
+        total_revenue = 0
+        total_tax = 0
+        for row in sale_rows:
+            timestamp = str(row["created_at"])
+            parsed_timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            local_date = parsed_timestamp.astimezone().date().isoformat()
+            day = daily_data.setdefault(local_date, {"sales_count": 0, "total_rupiah": 0})
+            day["sales_count"] += 1
+            day["total_rupiah"] += int(row["total_rupiah"])
+            total_revenue += int(row["total_rupiah"])
+            total_tax += int(row["tax_rupiah"])
+
+        item_rows = self._connection.execute(
             """
-            SELECT COALESCE(SUM(si.quantity), 0) AS items_sold
+            SELECT si.quantity
             FROM sale_items AS si
             INNER JOIN sales AS s ON s.id = si.sale_id
             WHERE s.status = 'completed' AND s.created_at >= ? AND s.created_at < ?
             """,
             (start_bound, end_bound),
-        ).fetchone()
-        daily_rows = self._connection.execute(
-            """
-            SELECT substr(created_at, 1, 10) AS sale_date,
-                   COUNT(*) AS sales_count,
-                   COALESCE(SUM(total_rupiah), 0) AS total_rupiah
-            FROM sales
-            WHERE status = 'completed' AND created_at >= ? AND created_at < ?
-            GROUP BY substr(created_at, 1, 10)
-            ORDER BY sale_date
-            """,
-            (start_bound, end_bound),
         ).fetchall()
-
-        count = int(totals["sales_count"])
-        revenue = int(totals["total_rupiah"])
+        items_sold = sum(int(row["quantity"]) for row in item_rows)
+        count = len(sale_rows)
         return {
             "start_date": start.isoformat(),
             "end_date": end.isoformat(),
             "sales_count": count,
-            "total_rupiah": revenue,
-            "tax_rupiah": int(totals["tax_rupiah"]),
-            "items_sold": int(items["items_sold"]),
-            "average_sale_rupiah": revenue // count if count else 0,
+            "total_rupiah": total_revenue,
+            "tax_rupiah": total_tax,
+            "items_sold": items_sold,
+            "average_sale_rupiah": total_revenue // count if count else 0,
             "daily": [
                 {
-                    "date": str(row["sale_date"]),
-                    "sales_count": int(row["sales_count"]),
-                    "total_rupiah": int(row["total_rupiah"]),
+                    "date": day,
+                    "sales_count": values["sales_count"],
+                    "total_rupiah": values["total_rupiah"],
                 }
-                for row in daily_rows
+                for day, values in sorted(daily_data.items())
             ],
         }
 
