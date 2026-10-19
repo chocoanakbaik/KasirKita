@@ -44,7 +44,7 @@ Historical sales must retain the actual unit price and tax configuration applied
 
 Represent IDR amounts as integer rupiah values when fractions of a rupiah are not part of the supported model. Never use binary floating-point values for financial arithmetic. Quantity representation must be decided explicitly before supporting fractional-unit goods; version 1 may restrict quantity to positive whole units unless the requirements are amended.
 
-Tax-inclusive versus tax-exclusive pricing and rounding policy are not yet finalized. They must be decided and tested before tax is implemented.
+Optional tax is currently configurable and disabled by default. Rates are stored as basis points (100 basis points = 1%) and calculated with integer arithmetic only. For exclusive pricing, tax is rounded half-up from subtotal × rate / 10,000 and added to the subtotal. For inclusive pricing, the tax component is extracted from the entered gross amount using gross × rate / (10,000 + rate), rounded half-up; the gross amount remains the total. Each sale snapshots whether tax was enabled, the rate, mode, and label used at checkout. This generic calculator is not a claim of Indonesian PPN compliance; the business must verify its tax treatment before using it for real transactions.
 
 ## 5. Database lifecycle
 
@@ -88,9 +88,9 @@ A test passing on one operating system does not prove compatibility with all Win
 6. Implement sale calculation and atomic checkout.
 7. Implement stock movement and transaction history.
 8. Implement reporting from persisted records.
-9. Implement tax only after the policy is specified.
+9. Maintain and verify the optional tax settings and calculation rules against approved business/legal requirements.
 10. Build UI workflows on top of tested services.
-11. Implement backup/restore, packaging, accessibility checks, and regression testing.
-12. Prepare a release checklist and user guide.
+11. Maintain backup/restore, packaging, accessibility checks, and regression testing.
+12. Prepare release evidence and keep the release checklist and user guide synchronized.
 
 No later layer should invent business rules independently of the domain/service layer.
