@@ -70,7 +70,7 @@ class SalesHistoryService:
         row = self._connection.execute(
             """
             SELECT id, receipt_number, status, subtotal_rupiah, tax_rupiah,
-                   total_rupiah, created_at
+                   total_rupiah, tax_enabled, tax_rate_basis_points, tax_mode, tax_label, created_at
             FROM sales
             WHERE id = ?
             """,
@@ -106,6 +106,10 @@ class SalesHistoryService:
             "subtotal_rupiah": int(row["subtotal_rupiah"]),
             "tax_rupiah": int(row["tax_rupiah"]),
             "total_rupiah": int(row["total_rupiah"]),
+            "tax_enabled": bool(row["tax_enabled"]),
+            "tax_rate_basis_points": int(row["tax_rate_basis_points"]),
+            "tax_mode": str(row["tax_mode"]),
+            "tax_label": str(row["tax_label"]),
             "created_at": str(row["created_at"]),
             "items": [
                 {
