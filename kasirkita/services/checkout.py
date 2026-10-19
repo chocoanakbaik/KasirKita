@@ -1,9 +1,4 @@
-"""Atomic checkout use case for cash sales.
-
-Tax is intentionally disabled in this first checkout slice. Tax behavior must be
-implemented only after the product requirements define inclusive/exclusive
-pricing, rounding, and historical tax snapshots.
-"""
+"""Atomic checkout use case with optional, snapshotted sales tax."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -11,7 +6,9 @@ import sqlite3
 from typing import Dict, List, Mapping, Sequence
 from uuid import uuid4
 
+from kasirkita.domain.tax import TaxCalculationError, calculate_tax
 from kasirkita.infrastructure.database import transaction
+from kasirkita.services.tax_settings import TaxSettingsError, TaxSettingsService
 
 
 MAX_QUANTITY_PER_LINE = 2_147_483_647
@@ -60,10 +57,27 @@ def _money_integer(value: object) -> int:
 
 
 class CheckoutService:
-    """Finalize a cash sale and stock deductions as one database transaction."""
+    """Preview and finalize cash sales using current prices and tax settings."""
 
     def __init__(self, connection: sqlite3.Connection) -> None:
         self._connection = connection
+        self._tax_settings = TaxSettingsService(connection)
+
+    def preview(self, items: Sequence[Mapping[str, object]]) -> dict:
+        """Return current cart totals without reserving stock or writing data."""
+        normalized_items = self._normalize_items(items)
+        lines, gross_amount = self._price_cart(normalized_items)
+        tax_config = self._read_tax_config()
+        totals = self._calculate_totals(gross_amount, tax_config)
+        return {
+            **totals,
+            "gross_amount_rupiah": gross_amount,
+            "tax_enabled": tax_config["enabled"],
+            "tax_rate_basis_points": tax_config["rate_basis_points"],
+            "tax_mode": tax_config["mode"],
+            "tax_label": tax_config["label"],
+            "items": lines,
+        }
 
     def checkout(
         self,
@@ -77,7 +91,6 @@ class CheckoutService:
             raise PaymentError("Metode pembayaran yang tersedia saat ini adalah tunai.")
         method = "cash"
 
-        # A short random suffix makes receipt identifiers safe across restarts.
         receipt_number = (
             "KK-"
             + datetime.now(timezone.utc).strftime("%Y%m%d")
@@ -85,62 +98,36 @@ class CheckoutService:
             + uuid4().hex[:12].upper()
         )
 
-        result_lines: List[dict] = []
-        subtotal = 0
-        change = 0
-
         with transaction(self._connection):
-            for product_id, quantity in normalized_items:
-                row = self._connection.execute(
-                    """
-                    SELECT id, sku, name, unit_price_rupiah, stock_quantity, is_active
-                    FROM products
-                    WHERE id = ?
-                    """,
-                    (product_id,),
-                ).fetchone()
-                if row is None or int(row["is_active"]) != 1:
-                    raise ProductUnavailableError(
-                        "Produk dengan ID " + str(product_id) + " tidak tersedia."
-                    )
+            result_lines, gross_amount = self._price_cart(normalized_items)
+            tax_config = self._read_tax_config()
+            totals = self._calculate_totals(gross_amount, tax_config)
+            subtotal = totals["subtotal_rupiah"]
+            tax = totals["tax_rupiah"]
+            total = totals["total_rupiah"]
 
-                stock = int(row["stock_quantity"])
-                if stock < quantity:
-                    raise InsufficientStockError(
-                        "Stok produk " + str(row["name"]) + " tidak mencukupi."
-                    )
-
-                unit_price = int(row["unit_price_rupiah"])
-                line_total = unit_price * quantity
-                if line_total > MAX_MONEY_RUPIAH:
-                    raise InvalidCartError("Nilai salah satu baris transaksi terlalu besar.")
-                subtotal += line_total
-                if subtotal > MAX_MONEY_RUPIAH:
-                    raise InvalidCartError("Total transaksi melebihi batas yang didukung.")
-
-                result_lines.append(
-                    {
-                        "product_id": int(row["id"]),
-                        "sku": str(row["sku"]),
-                        "name": str(row["name"]),
-                        "quantity": quantity,
-                        "unit_price_rupiah": unit_price,
-                        "line_total_rupiah": line_total,
-                    }
-                )
-
-            total = subtotal  # Tax remains off until tax requirements are approved.
             if total > 0 and received < total:
                 raise PaymentError("Uang yang diterima belum mencukupi total transaksi.")
             change = received - total
 
             sale_cursor = self._connection.execute(
                 """
-                INSERT INTO sales
-                    (receipt_number, status, subtotal_rupiah, tax_rupiah, total_rupiah)
-                VALUES (?, 'completed', ?, 0, ?)
+                INSERT INTO sales (
+                    receipt_number, status, subtotal_rupiah, tax_rupiah, total_rupiah,
+                    tax_enabled, tax_rate_basis_points, tax_mode, tax_label
+                )
+                VALUES (?, 'completed', ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (receipt_number, subtotal, total),
+                (
+                    receipt_number,
+                    subtotal,
+                    tax,
+                    total,
+                    1 if tax_config["enabled"] else 0,
+                    tax_config["rate_basis_points"],
+                    tax_config["mode"],
+                    tax_config["label"],
+                ),
             )
             sale_id = int(sale_cursor.lastrowid)
 
@@ -157,8 +144,6 @@ class CheckoutService:
                     (quantity, product_id, quantity),
                 )
                 if cursor.rowcount != 1:
-                    # Defensive concurrency guard; BEGIN IMMEDIATE serializes writers,
-                    # while the conditional update protects the invariant itself.
                     raise InsufficientStockError(
                         "Stok berubah selama transaksi. Silakan periksa ulang keranjang."
                     )
@@ -208,13 +193,75 @@ class CheckoutService:
             "receipt_number": receipt_number,
             "status": "completed",
             "subtotal_rupiah": subtotal,
-            "tax_rupiah": 0,
-            "total_rupiah": subtotal,
+            "tax_rupiah": tax,
+            "total_rupiah": total,
+            "tax_enabled": tax_config["enabled"],
+            "tax_rate_basis_points": tax_config["rate_basis_points"],
+            "tax_mode": tax_config["mode"],
+            "tax_label": tax_config["label"],
             "amount_received_rupiah": received,
             "change_rupiah": change,
             "payment_method": method,
             "items": result_lines,
         }
+
+    def _price_cart(self, normalized_items: Sequence[tuple[int, int]]) -> tuple[List[dict], int]:
+        lines: List[dict] = []
+        gross_amount = 0
+        for product_id, quantity in normalized_items:
+            row = self._connection.execute(
+                """
+                SELECT id, sku, name, unit_price_rupiah, stock_quantity, is_active
+                FROM products
+                WHERE id = ?
+                """,
+                (product_id,),
+            ).fetchone()
+            if row is None or int(row["is_active"]) != 1:
+                raise ProductUnavailableError(
+                    "Produk dengan ID " + str(product_id) + " tidak tersedia."
+                )
+            if int(row["stock_quantity"]) < quantity:
+                raise InsufficientStockError(
+                    "Stok produk " + str(row["name"]) + " tidak mencukupi."
+                )
+
+            unit_price = int(row["unit_price_rupiah"])
+            line_total = unit_price * quantity
+            if line_total > MAX_MONEY_RUPIAH:
+                raise InvalidCartError("Nilai salah satu baris transaksi terlalu besar.")
+            gross_amount += line_total
+            if gross_amount > MAX_MONEY_RUPIAH:
+                raise InvalidCartError("Total transaksi melebihi batas yang didukung.")
+
+            lines.append(
+                {
+                    "product_id": int(row["id"]),
+                    "sku": str(row["sku"]),
+                    "name": str(row["name"]),
+                    "quantity": quantity,
+                    "unit_price_rupiah": unit_price,
+                    "line_total_rupiah": line_total,
+                }
+            )
+        return lines, gross_amount
+
+    def _read_tax_config(self) -> dict:
+        try:
+            return self._tax_settings.get_config()
+        except TaxSettingsError as exc:
+            raise CheckoutError(
+                "Pengaturan pajak tidak valid. Periksa pengaturan sebelum bertransaksi."
+            ) from exc
+
+    @staticmethod
+    def _calculate_totals(gross_amount: int, tax_config: dict) -> dict:
+        try:
+            return calculate_tax(gross_amount, tax_config)
+        except TaxCalculationError as exc:
+            raise CheckoutError(
+                "Total transaksi tidak dapat dihitung dengan pengaturan saat ini."
+            ) from exc
 
     @staticmethod
     def _normalize_items(
