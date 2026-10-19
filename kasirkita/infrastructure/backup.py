@@ -1,6 +1,7 @@
 """Validated SQLite backup and restore operations."""
 from __future__ import annotations
 
+from contextlib import closing
 import os
 from pathlib import Path
 import sqlite3
@@ -91,7 +92,7 @@ class DatabaseBackupService:
         target.parent.mkdir(parents=True, exist_ok=True)
         temporary = _temporary_database_path(target.parent, ".kasirkita-backup-")
         try:
-            with sqlite3.connect(str(temporary), timeout=5.0) as backup_connection:
+            with closing(sqlite3.connect(str(temporary), timeout=5.0)) as backup_connection:
                 self._live_connection.backup(backup_connection)
                 _validate_connection(backup_connection)
             os.replace(str(temporary), str(target))
@@ -115,11 +116,11 @@ class DatabaseBackupService:
         if self._live_connection.in_transaction:
             raise BackupError("Restore tidak dapat dilakukan saat transaksi database aktif.")
 
-        temporary = _temporary_database_path(source_path.parent, ".kasirkita-safety-")
+        temporary = _temporary_database_path(Path(tempfile.gettempdir()), ".kasirkita-safety-")
         try:
-            with _open_existing_database(source_path) as source_connection:
+            with closing(_open_existing_database(source_path)) as source_connection:
                 _validate_connection(source_connection)
-                with sqlite3.connect(str(temporary), timeout=5.0) as safety_connection:
+                with closing(sqlite3.connect(str(temporary), timeout=5.0)) as safety_connection:
                     self._live_connection.backup(safety_connection)
                     _validate_connection(safety_connection)
 
@@ -130,7 +131,7 @@ class DatabaseBackupService:
                     # Best-effort rollback at database-image level if post-restore
                     # validation fails. The safety image was validated beforehand.
                     try:
-                        with sqlite3.connect(str(temporary), timeout=5.0) as safety_connection:
+                        with closing(sqlite3.connect(str(temporary), timeout=5.0)) as safety_connection:
                             safety_connection.backup(self._live_connection)
                     except Exception as recovery_error:
                         raise BackupError(
