@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Iterator, Union
 
 DatabasePath = Union[str, Path]
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class DatabaseError(RuntimeError):
@@ -148,8 +148,30 @@ CREATE INDEX IF NOT EXISTS idx_stock_movements_sale_id ON stock_movements(sale_i
 """
 
 
+_MIGRATION_1_TO_2_SQL = """
+ALTER TABLE sales ADD COLUMN tax_enabled INTEGER NOT NULL DEFAULT 0
+    CHECK (tax_enabled IN (0, 1));
+ALTER TABLE sales ADD COLUMN tax_rate_basis_points INTEGER NOT NULL DEFAULT 0
+    CHECK (tax_rate_basis_points BETWEEN 0 AND 10000);
+ALTER TABLE sales ADD COLUMN tax_mode TEXT NOT NULL DEFAULT 'exclusive'
+    CHECK (tax_mode IN ('exclusive', 'inclusive'));
+ALTER TABLE sales ADD COLUMN tax_label TEXT NOT NULL DEFAULT 'PPN'
+    CHECK (length(trim(tax_label)) > 0);
+"""
+
+
+def _execute_script_atomically(connection: sqlite3.Connection, script: str) -> None:
+    """Run a schema script as one SQLite transaction."""
+    try:
+        connection.executescript("BEGIN IMMEDIATE;\n" + script + "\nCOMMIT;")
+    except sqlite3.Error:
+        if connection.in_transaction:
+            connection.execute("ROLLBACK")
+        raise
+
+
 def initialize_database(connection: sqlite3.Connection) -> None:
-    """Create the initial schema or reject a schema version this app cannot read."""
+    """Create the schema and apply every required migration in order."""
     try:
         current_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
         if current_version > SCHEMA_VERSION:
@@ -157,28 +179,27 @@ def initialize_database(connection: sqlite3.Connection) -> None:
                 "The database was created by a newer KasirKita version. "
                 "Opening it with this version is blocked to protect the data."
             )
-        if current_version == SCHEMA_VERSION:
-            return
-        if current_version != 0:
+
+        if current_version == 0:
+            _execute_script_atomically(
+                connection,
+                _SCHEMA_SQL + "\nPRAGMA user_version = 1;",
+            )
+            current_version = 1
+
+        if current_version == 1:
+            _execute_script_atomically(
+                connection,
+                _MIGRATION_1_TO_2_SQL + "\nPRAGMA user_version = 2;",
+            )
+            current_version = 2
+
+        if current_version != SCHEMA_VERSION:
             raise DatabaseError(
                 "No migration path exists for database schema version "
                 + str(current_version)
                 + "."
             )
-
-        try:
-            # executescript() controls its own transaction boundaries, so the
-            # BEGIN/COMMIT must be part of the script rather than wrapped by
-            # the transaction() context manager.
-            connection.executescript(
-                "BEGIN IMMEDIATE;\n"
-                + _SCHEMA_SQL
-                + "\nPRAGMA user_version = 1;\nCOMMIT;"
-            )
-        except sqlite3.Error:
-            if connection.in_transaction:
-                connection.execute("ROLLBACK")
-            raise
     except DatabaseError:
         raise
     except sqlite3.Error as exc:
