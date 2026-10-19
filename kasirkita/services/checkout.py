@@ -132,7 +132,7 @@ class CheckoutService:
             total = subtotal  # Tax remains off until tax requirements are approved.
             if total > 0 and received < total:
                 raise PaymentError("Uang yang diterima belum mencukupi total transaksi.")
-            change = received - total if total > 0 else 0
+            change = received - total
 
             sale_cursor = self._connection.execute(
                 """
