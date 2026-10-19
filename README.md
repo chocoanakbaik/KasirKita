@@ -35,10 +35,11 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 
 ## Fitur yang Sudah Diimplementasikan
 
-- UI desktop awal dengan tab Kasir, Produk, Riwayat Transaksi, dan Laporan.
+- UI desktop dengan tab Kasir, Produk, Riwayat Transaksi, Laporan, dan Pengaturan.
 - Katalog produk: tambah, cari, edit detail, dan aktifkan/nonaktifkan produk.
 - Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan stok.
-- Transaksi tunai, validasi uang diterima dan kembalian, snapshot nama/harga produk, serta pengurangan stok atomik.
+- Transaksi tunai dengan validasi uang diterima dan kembalian, snapshot nama/harga produk, dan pengurangan stok atomik.
+- Pajak opsional dengan status nonaktif secara default, tarif yang dikonfigurasi pengguna, mode harga termasuk/tidak termasuk pajak, pembulatan integer, dan snapshot konfigurasi pajak pada transaksi.
 - Riwayat transaksi dan detail struk berdasarkan data yang tersimpan.
 - Ringkasan penjualan berdasarkan tanggal lokal komputer.
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
@@ -59,7 +60,9 @@ GitHub Actions menjalankan kompilasi dan pengujian otomatis pada Windows dan Ubu
 
 ## Pajak dan PPN
 
-Pada implementasi saat ini, pajak belum diterapkan dan transaksi dihitung tanpa PPN. Fitur pajak direncanakan opsional. Perilaku PPN, pembulatan, harga termasuk/tidak termasuk pajak, dan penyimpanan aturan pajak pada transaksi historis harus ditetapkan serta diuji sebelum fitur pajak diimplementasikan. Aplikasi tidak boleh mengklaim kepatuhan pajak otomatis. Pengguna bertanggung jawab mengonfigurasi aplikasi sesuai status usaha dan ketentuan yang berlaku.
+Pajak nonaktif secara default. Pengguna dapat mengaktifkan pajak, mengatur label, tarif, dan apakah harga yang dimasukkan sudah termasuk pajak atau belum. Tarif tidak diisi otomatis. Setiap transaksi menyimpan konfigurasi pajak yang digunakan saat transaksi dibuat, sehingga perubahan pengaturan tidak menulis ulang transaksi lama.
+
+Perhitungan ini adalah alat bantu yang dapat dikonfigurasi, **bukan sertifikasi kepatuhan pajak**. Perlakuan PPN dapat bergantung pada status usaha, jenis barang/jasa, dasar pengenaan pajak, dan ketentuan yang berlaku. Pengguna harus memverifikasi tarif serta perlakuan pajaknya sebelum memakai fitur ini untuk transaksi nyata.
 
 ## Prinsip Kejujuran Status
 
