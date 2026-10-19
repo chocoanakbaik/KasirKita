@@ -15,14 +15,15 @@ class BackupError(RuntimeError):
     """Raised when a backup or restore cannot be completed safely."""
 
 
-_REQUIRED_TABLES = {
-    "products",
-    "sales",
-    "sale_items",
-    "payments",
-    "stock_movements",
-    "app_settings",
+_REQUIRED_COLUMNS = {
+    "products": {"id", "sku", "name", "unit_price_rupiah", "stock_quantity", "is_active"},
+    "sales": {"id", "receipt_number", "status", "subtotal_rupiah", "tax_rupiah", "total_rupiah"},
+    "sale_items": {"id", "sale_id", "product_id", "sku_snapshot", "product_name_snapshot", "quantity", "unit_price_rupiah", "line_total_rupiah"},
+    "payments": {"id", "sale_id", "method", "amount_rupiah"},
+    "stock_movements": {"id", "product_id", "sale_id", "movement_type", "quantity_delta"},
+    "app_settings": {"key", "value"},
 }
+_REQUIRED_TABLES = set(_REQUIRED_COLUMNS)
 
 
 def _open_existing_database(path: Path) -> sqlite3.Connection:
@@ -59,6 +60,17 @@ def _validate_connection(connection: sqlite3.Connection) -> None:
         }
         if not _REQUIRED_TABLES.issubset(names):
             raise BackupError("Backup tidak berisi semua tabel inti KasirKita.")
+        for table_name, expected_columns in _REQUIRED_COLUMNS.items():
+            actual_columns = {
+                str(row[1])
+                for row in connection.execute(
+                    "PRAGMA table_info(" + table_name + ")"
+                ).fetchall()
+            }
+            if not expected_columns.issubset(actual_columns):
+                raise BackupError(
+                    "Struktur tabel " + table_name + " tidak cocok dengan skema KasirKita."
+                )
     except BackupError:
         raise
     except sqlite3.Error as exc:
@@ -79,13 +91,33 @@ class DatabaseBackupService:
     existing connection object remains valid after a successful restore.
     """
 
-    def __init__(self, live_connection: sqlite3.Connection) -> None:
+    def __init__(
+        self,
+        live_connection: sqlite3.Connection,
+        live_database_path: Optional[str] = None,
+    ) -> None:
         self._live_connection = live_connection
+        self._live_database_path = (
+            Path(live_database_path).expanduser().resolve()
+            if live_database_path is not None
+            else None
+        )
+
+    def _reject_live_database_path(self, candidate: Path) -> None:
+        if self._live_database_path is not None:
+            try:
+                if candidate.resolve() == self._live_database_path:
+                    raise BackupError(
+                        "File database aktif tidak boleh digunakan sebagai file backup."
+                    )
+            except OSError as exc:
+                raise BackupError("Lokasi file tidak dapat diverifikasi.") from exc
 
     def create_backup(self, destination: str) -> Path:
         target = Path(destination).expanduser()
         if not target.name:
             raise BackupError("Lokasi backup tidak valid.")
+        self._reject_live_database_path(target)
         if self._live_connection.in_transaction:
             raise BackupError("Backup tidak dapat dibuat saat transaksi database aktif.")
 
@@ -113,6 +145,7 @@ class DatabaseBackupService:
         source_path = Path(source).expanduser()
         if not source_path.is_file():
             raise BackupError("File backup tidak ditemukan.")
+        self._reject_live_database_path(source_path)
         if self._live_connection.in_transaction:
             raise BackupError("Restore tidak dapat dilakukan saat transaksi database aktif.")
 
