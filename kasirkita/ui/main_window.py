@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import re
 import tkinter as tk
+from datetime import date
 from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 from typing import Dict, Optional
@@ -16,6 +17,7 @@ from kasirkita.infrastructure.product_repository import (
 from kasirkita.services.checkout import CheckoutError, CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog, ProductValidationError
 from kasirkita.services.sales_history import SalesHistoryService, SalesHistoryValidationError
+from kasirkita.services.sales_report import SalesReportService, SalesReportValidationError
 from kasirkita.services.stock import StockAdjustmentError, StockService
 
 logger = logging.getLogger("kasirkita.ui")
@@ -198,6 +200,7 @@ class MainWindow:
         sales_history: SalesHistoryService,
         backup_service: DatabaseBackupService,
         stock_service: StockService,
+        sales_report: SalesReportService,
     ) -> None:
         self.root = root
         self.catalog = catalog
@@ -205,6 +208,7 @@ class MainWindow:
         self.sales_history = sales_history
         self.backup_service = backup_service
         self.stock_service = stock_service
+        self.sales_report = sales_report
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
         self._sales_rows: Dict[int, dict] = {}
@@ -218,6 +222,7 @@ class MainWindow:
         self.refresh_cashier_products()
         self.refresh_cart()
         self.refresh_sales()
+        self.refresh_report()
 
     def _configure_style(self) -> None:
         style = ttk.Style(self.root)
@@ -246,12 +251,15 @@ class MainWindow:
         self.cashier_tab = ttk.Frame(self.tabs, padding=12)
         self.products_tab = ttk.Frame(self.tabs, padding=12)
         self.history_tab = ttk.Frame(self.tabs, padding=12)
+        self.report_tab = ttk.Frame(self.tabs, padding=12)
         self.tabs.add(self.cashier_tab, text="Kasir")
         self.tabs.add(self.products_tab, text="Produk")
         self.tabs.add(self.history_tab, text="Riwayat transaksi")
+        self.tabs.add(self.report_tab, text="Laporan")
         self._build_cashier_tab()
         self._build_products_tab()
         self._build_history_tab()
+        self._build_report_tab()
 
     def _build_cashier_tab(self) -> None:
         self.cashier_tab.columnconfigure(0, weight=3)
@@ -461,6 +469,95 @@ class MainWindow:
         ttk.Button(backup_actions, text="Pulihkan backup", command=self.restore_backup).pack(
             side="left", padx=(8, 0)
         )
+
+    def _build_report_tab(self) -> None:
+        self.report_tab.rowconfigure(2, weight=1)
+        self.report_tab.columnconfigure(0, weight=1)
+        toolbar = ttk.Frame(self.report_tab)
+        toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 12))
+        today = date.today().isoformat()
+        ttk.Label(toolbar, text="Dari (tanggal lokal)").pack(side="left")
+        self.report_start_var = tk.StringVar(value=today)
+        ttk.Entry(toolbar, textvariable=self.report_start_var, width=13).pack(
+            side="left", padx=(6, 12)
+        )
+        ttk.Label(toolbar, text="Sampai").pack(side="left")
+        self.report_end_var = tk.StringVar(value=today)
+        ttk.Entry(toolbar, textvariable=self.report_end_var, width=13).pack(
+            side="left", padx=6
+        )
+        ttk.Button(toolbar, text="Buat laporan", command=self.refresh_report).pack(
+            side="left", padx=(8, 0)
+        )
+        ttk.Label(
+            toolbar,
+            text="Tanggal mengikuti zona waktu komputer.",
+            foreground="#596777",
+        ).pack(side="right")
+
+        summary = ttk.Frame(self.report_tab)
+        summary.grid(row=1, column=0, sticky="ew", pady=(0, 12))
+        for column in range(4):
+            summary.columnconfigure(column, weight=1)
+        self.report_sales_var = tk.StringVar(value="0")
+        self.report_revenue_var = tk.StringVar(value=format_rupiah(0))
+        self.report_items_var = tk.StringVar(value="0")
+        self.report_average_var = tk.StringVar(value=format_rupiah(0))
+        for column, title_text, variable in [
+            (0, "Jumlah transaksi", self.report_sales_var),
+            (1, "Total penjualan", self.report_revenue_var),
+            (2, "Unit terjual", self.report_items_var),
+            (3, "Rata-rata transaksi", self.report_average_var),
+        ]:
+            card = ttk.LabelFrame(summary, text=title_text, padding=10)
+            card.grid(row=0, column=column, sticky="ew", padx=(0 if column == 0 else 6, 0))
+            ttk.Label(card, textvariable=variable, font=("Segoe UI", 13, "bold")).pack(
+                anchor="w"
+            )
+
+        self.report_tree = ttk.Treeview(
+            self.report_tab,
+            columns=("date", "count", "total"),
+            show="headings",
+        )
+        for key, label, width in [
+            ("date", "Tanggal lokal", 180),
+            ("count", "Transaksi", 120),
+            ("total", "Total penjualan", 180),
+        ]:
+            self.report_tree.heading(key, text=label)
+            self.report_tree.column(key, width=width, anchor="w")
+        self.report_tree.grid(row=2, column=0, sticky="nsew")
+        scroll = ttk.Scrollbar(self.report_tab, orient="vertical", command=self.report_tree.yview)
+        scroll.grid(row=2, column=1, sticky="ns")
+        self.report_tree.configure(yscrollcommand=scroll.set)
+
+    def refresh_report(self) -> None:
+        try:
+            report = self.sales_report.summarize(
+                self.report_start_var.get().strip(),
+                self.report_end_var.get().strip(),
+            )
+            self.report_sales_var.set(str(report["sales_count"]))
+            self.report_revenue_var.set(format_rupiah(report["total_rupiah"]))
+            self.report_items_var.set(str(report["items_sold"]))
+            self.report_average_var.set(format_rupiah(report["average_sale_rupiah"]))
+            self.report_tree.delete(*self.report_tree.get_children())
+            for item in report["daily"]:
+                self.report_tree.insert(
+                    "",
+                    "end",
+                    values=(
+                        item["date"],
+                        item["sales_count"],
+                        format_rupiah(item["total_rupiah"]),
+                    ),
+                )
+        except SalesReportValidationError as exc:
+            messagebox.showerror("Rentang tanggal tidak valid", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Failed to build sales report")
+            messagebox.showerror("Kesalahan", "Laporan penjualan gagal dibuat.", parent=self.root)
 
     def create_backup(self) -> None:
         destination = filedialog.asksaveasfilename(
