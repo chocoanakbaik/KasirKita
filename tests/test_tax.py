@@ -29,12 +29,12 @@ class TaxCalculationTests(unittest.TestCase):
 
     def test_inclusive_tax_extracts_tax_from_gross_total(self):
         result = calculate_tax(
-            11100,
+            11000,
             {"enabled": True, "rate_basis_points": 1000, "mode": "inclusive"},
         )
-        self.assertEqual(result["total_rupiah"], 11100)
+        self.assertEqual(result["total_rupiah"], 11000)
         self.assertEqual(result["tax_rupiah"], 1000)
-        self.assertEqual(result["subtotal_rupiah"], 10100)
+        self.assertEqual(result["subtotal_rupiah"], 10000)
 
     def test_zero_rate_does_not_change_total(self):
         result = calculate_tax(
