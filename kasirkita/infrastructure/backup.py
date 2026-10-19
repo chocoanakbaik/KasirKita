@@ -17,7 +17,7 @@ class BackupError(RuntimeError):
 
 _REQUIRED_COLUMNS = {
     "products": {"id", "sku", "name", "unit_price_rupiah", "stock_quantity", "is_active"},
-    "sales": {"id", "receipt_number", "status", "subtotal_rupiah", "tax_rupiah", "total_rupiah"},
+    "sales": {"id", "receipt_number", "status", "subtotal_rupiah", "tax_rupiah", "total_rupiah", "tax_enabled", "tax_rate_basis_points", "tax_mode", "tax_label"},
     "sale_items": {"id", "sale_id", "product_id", "sku_snapshot", "product_name_snapshot", "quantity", "unit_price_rupiah", "line_total_rupiah"},
     "payments": {"id", "sale_id", "method", "amount_rupiah"},
     "stock_movements": {"id", "product_id", "sale_id", "movement_type", "quantity_delta"},
