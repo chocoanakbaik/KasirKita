@@ -56,9 +56,11 @@ Prefer a small, locally available technology stack and avoid unnecessary externa
 
 ## 5. Tax and PPN behavior
 
-Tax is a configurable business feature, not a forced default. The application must allow tax to be disabled. When enabled, the configured tax rules must be clearly shown in settings and reflected consistently in transaction calculations, receipts, and reports. The application must not assume that every business is required to charge PPN or that every business can charge it. The business owner is responsible for configuring the application according to their actual tax status and applicable rules.
+The current implementation provides a configurable generic sales-tax calculator. Tax is disabled by default, and no default rate is assumed. The user can set a label, rate, and whether entered prices include tax or exclude tax. The application must not assume that every business is required to charge PPN or that every business can charge it.
 
-Tax calculation policy, rounding, whether prices are tax-inclusive or tax-exclusive, and how historical transactions retain the rule used at sale time must be specified and tested before tax functionality is implemented.
+Rates are stored in basis points, where 100 basis points equal 1%. All calculations use integer arithmetic and round half-up to whole rupiah. In exclusive mode, tax is calculated from the entered subtotal and added to it. In inclusive mode, tax is extracted from the entered gross amount and the customer-facing total remains that gross amount. Each sale snapshots the tax-enabled flag, rate, mode, and label so later settings changes do not rewrite historical transactions.
+
+This generic calculator is not a claim of legal or tax compliance. Before real-world use, the business owner must verify the applicable PPN treatment, tax base, rate, eligibility, and receipt requirements. Future changes to tax behavior require migration and regression tests.
 
 ## 6. Quality gates
 
