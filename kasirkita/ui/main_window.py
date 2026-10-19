@@ -258,21 +258,84 @@ class MainWindow:
             style.theme_use("clam")
         style.configure("TFrame", background="#f4f6f8")
         style.configure("TLabel", background="#f4f6f8", foreground="#17212b")
-        style.configure("Header.TLabel", font=("Segoe UI", 18, "bold"))
+        style.configure("TLabelframe", background="#f4f6f8")
+        style.configure("TLabelframe.Label", background="#f4f6f8", foreground="#334155")
+        style.configure("Header.TFrame", background="#172033")
+        style.configure(
+            "Header.TLabel",
+            background="#172033",
+            foreground="#ffffff",
+            font=("Segoe UI", 19, "bold"),
+        )
+        style.configure(
+            "HeaderMeta.TLabel",
+            background="#172033",
+            foreground="#67e8f9",
+            font=("Segoe UI", 9, "bold"),
+        )
         style.configure("Subheader.TLabel", font=("Segoe UI", 11, "bold"))
-        style.configure("TButton", padding=(10, 6))
-        style.configure("Treeview", rowheight=28, font=("Segoe UI", 10))
-        style.configure("Treeview.Heading", font=("Segoe UI", 10, "bold"))
+        style.configure("TButton", padding=(10, 7), font=("Segoe UI", 9))
+        style.configure(
+            "Accent.TButton",
+            background="#2563eb",
+            foreground="#ffffff",
+            padding=(12, 8),
+            font=("Segoe UI", 10, "bold"),
+        )
+        style.map(
+            "Accent.TButton",
+            background=[("pressed", "#1e40af"), ("active", "#1d4ed8")],
+            foreground=[("disabled", "#94a3b8")],
+        )
+        style.configure(
+            "TNotebook",
+            background="#f4f6f8",
+            borderwidth=0,
+        )
+        style.configure(
+            "TNotebook.Tab",
+            padding=(15, 9),
+            background="#e2e8f0",
+            foreground="#334155",
+            font=("Segoe UI", 10, "bold"),
+        )
+        style.map(
+            "TNotebook.Tab",
+            background=[("selected", "#ffffff"), ("active", "#dbeafe")],
+            foreground=[("selected", "#1d4ed8")],
+        )
+        style.configure(
+            "Treeview",
+            rowheight=30,
+            font=("Segoe UI", 10),
+            background="#ffffff",
+            fieldbackground="#ffffff",
+            foreground="#17212b",
+        )
+        style.map(
+            "Treeview",
+            background=[("selected", "#dbeafe")],
+            foreground=[("selected", "#1e3a8a")],
+        )
+        style.configure(
+            "Treeview.Heading",
+            font=("Segoe UI", 10, "bold"),
+            background="#e8eef6",
+            foreground="#1e293b",
+            padding=(8, 7),
+        )
 
     def _build_ui(self) -> None:
         shell = ttk.Frame(self.root, padding=16)
         shell.pack(fill="both", expand=True)
-        header = ttk.Frame(shell)
+        header = ttk.Frame(shell, style="Header.TFrame", padding=(14, 12))
         header.pack(fill="x", pady=(0, 12))
         ttk.Label(header, text="KasirKita", style="Header.TLabel").pack(side="left")
-        ttk.Label(header, text="DESKTOP • LOKAL", font=("Segoe UI", 9, "bold")).pack(
-            side="right", padx=4
-        )
+        ttk.Label(
+            header,
+            text="DESKTOP  •  LOKAL",
+            style="HeaderMeta.TLabel",
+        ).pack(side="right", padx=4)
 
         self.tabs = ttk.Notebook(shell)
         self.tabs.pack(fill="both", expand=True)
@@ -401,7 +464,12 @@ class MainWindow:
         ttk.Label(totals, text="Uang diterima (tunai)").pack(anchor="w")
         self.received_var = tk.StringVar()
         ttk.Entry(totals, textvariable=self.received_var).pack(fill="x", pady=(3, 8))
-        ttk.Button(totals, text="PROSES PEMBAYARAN", command=self.process_checkout).pack(
+        ttk.Button(
+            totals,
+            text="PROSES PEMBAYARAN",
+            command=self.process_checkout,
+            style="Accent.TButton",
+        ).pack(
             fill="x", pady=(0, 6)
         )
         ttk.Label(
@@ -629,7 +697,12 @@ class MainWindow:
         )
         self.tax_mode_combo.grid(row=3, column=1, sticky="ew", pady=6)
         self.tax_mode_combo.set("Belum termasuk pajak")
-        ttk.Button(frame, text="Simpan pengaturan pajak", command=self.save_tax_settings).grid(
+        ttk.Button(
+            frame,
+            text="Simpan pengaturan pajak",
+            command=self.save_tax_settings,
+            style="Accent.TButton",
+        ).grid(
             row=4, column=0, columnspan=2, sticky="ew", pady=(12, 8)
         )
         ttk.Label(
