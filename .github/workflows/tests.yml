@@ -28,5 +28,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Compile all Python modules
+        run: python -m compileall -q kasirkita tests
+
       - name: Run unit and integration test discovery
         run: python -m unittest discover -v
