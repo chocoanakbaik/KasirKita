@@ -77,13 +77,14 @@ def format_tax_rate(rate_basis_points: int) -> str:
 class ProductDialog(tk.Toplevel):
     """Modal form for creating or editing a catalogue product."""
 
-    def __init__(self, parent, title: str, product: Optional[dict] = None) -> None:
+    def __init__(self, parent, title: str, product: Optional[dict] = None, code_generator=None) -> None:
         super().__init__(parent)
         self.title(title)
         self.resizable(False, False)
         self.transient(parent)
         self.result = None
         self._product = product
+        self._code_generator = code_generator
 
         frame = ttk.Frame(self, padding=18)
         frame.grid(row=0, column=0, sticky="nsew")
@@ -112,6 +113,11 @@ class ProductDialog(tk.Toplevel):
             entry.insert(0, defaults[key])
             entry.grid(row=row, column=1, sticky="ew", pady=7)
             self._entries[key] = entry
+            if key == "sku" and product is None and code_generator is not None:
+                ttk.Button(
+                    frame, text="Buat kode otomatis",
+                    command=self._generate_code,
+                ).grid(row=row, column=2, padx=(8, 0), pady=7)
 
         buttons = ttk.Frame(frame)
         buttons.grid(row=len(fields), column=0, columnspan=2, sticky="e", pady=(14, 0))
@@ -124,6 +130,16 @@ class ProductDialog(tk.Toplevel):
         self.grab_set()
         self._entries["sku"].focus_set()
         self.protocol("WM_DELETE_WINDOW", self.destroy)
+
+    def _generate_code(self) -> None:
+        if self._code_generator is None:
+            return
+        try:
+            code = self._code_generator()
+            self._entries["sku"].delete(0, "end")
+            self._entries["sku"].insert(0, code)
+        except Exception:
+            messagebox.showerror("Kode gagal dibuat", "Kode internal tidak dapat dibuat. Coba lagi.", parent=self)
 
     def _submit(self) -> None:
         sku = self._entries["sku"].get()
@@ -1374,7 +1390,7 @@ class MainWindow:
             messagebox.showerror("Kesalahan", "Daftar produk kasir gagal dimuat.", parent=self.root)
 
     def add_product(self) -> None:
-        dialog = ProductDialog(self.root, "Tambah produk")
+        dialog = ProductDialog(self.root, "Tambah produk", code_generator=self.next_internal_code)
         self.root.wait_window(dialog)
         if dialog.result is None:
             return
@@ -1393,6 +1409,19 @@ class MainWindow:
         except Exception:
             logger.exception("Failed to create product")
             messagebox.showerror("Kesalahan", "Produk gagal disimpan.", parent=self.root)
+
+    def next_internal_code(self) -> str:
+        """Return the first unused store-local SKU code."""
+        from kasirkita.services.barcode import make_internal_code
+        products = self.catalog.list_products("", include_inactive=True)
+        used = {str(product["sku"]).upper() for product in products}
+        sequence = 1
+        while sequence <= 2_147_483_647:
+            candidate = make_internal_code(sequence)
+            if candidate not in used:
+                return candidate
+            sequence += 1
+        raise RuntimeError("Tidak ada nomor kode internal yang tersedia.")
 
     def _selected_product(self) -> Optional[dict]:
         selection = self.product_tree.selection()
