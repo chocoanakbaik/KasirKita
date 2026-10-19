@@ -1,0 +1,4 @@
+# Build-only dependency for the Windows desktop package.
+# Pinning the last PyInstaller line that supports Python 3.8.
+pyinstaller==5.13.2
+Pillow==10.4.0
