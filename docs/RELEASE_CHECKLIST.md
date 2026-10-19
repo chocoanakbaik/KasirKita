@@ -28,6 +28,7 @@
 - [ ] Complete a cash sale and verify stock, payment, receipt, and report totals.
 - [ ] Test keyboard-emulated scanner input and manually typed SKU; unknown codes must not alter the cart.
 - [ ] Verify XLSX summary/daily sheets and PDF report readability, file extensions, and content.
+- [ ] Verify receipt TXT/PDF exports match the persisted sale snapshot, including tax, totals, and item quantities.
 - [ ] Try insufficient cash and insufficient stock; verify no partial sale is saved.
 - [ ] Verify disabled-tax, exclusive-tax, and inclusive-tax cases against independently calculated examples.
 - [ ] Change tax settings and verify old receipt snapshots do not change.
