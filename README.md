@@ -23,6 +23,7 @@ Aplikasi dirancang offline-first dengan database SQLite lokal. Server, akun onli
 - [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
 - [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
 - [Panduan Pengguna Alpha](docs/PANDUAN_PENGGUNA_ALPHA.md)
+- [Checklist Rilis](docs/RELEASE_CHECKLIST.md)
 
 ## Menjalankan Aplikasi dari Source
 
