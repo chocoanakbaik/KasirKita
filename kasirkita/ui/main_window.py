@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import re
 import tkinter as tk
+import webbrowser
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from tkinter import filedialog, messagebox, ttk
@@ -24,6 +25,8 @@ from kasirkita.services.tax_settings import TaxSettingsError, TaxSettingsService
 from kasirkita.services.stock import StockAdjustmentError, StockService
 
 logger = logging.getLogger("kasirkita.ui")
+
+CHOCO_AI_URL = "https://choco-ai-platform.netlify.app/"
 
 
 def format_rupiah(value: int) -> str:
@@ -240,6 +243,7 @@ class MainWindow:
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
         self._sales_rows: Dict[int, dict] = {}
+        self._brand_logo = None
 
         self.root.title("KasirKita Desktop")
         self.root.geometry("1120x720")
@@ -331,7 +335,25 @@ class MainWindow:
         shell.pack(fill="both", expand=True)
         header = ttk.Frame(shell, style="Header.TFrame", padding=(14, 12))
         header.pack(fill="x", pady=(0, 12))
-        ttk.Label(header, text="KasirKita", style="Header.TLabel").pack(side="left")
+        brand = ttk.Frame(header, style="Header.TFrame")
+        brand.pack(side="left")
+        logo_path = Path(__file__).resolve().parents[2] / "assets" / "brand"
+        try:
+            from PIL import Image, ImageTk
+            candidates = sorted(
+                path for path in logo_path.iterdir()
+                if path.is_file() and path.suffix.lower() in (".png", ".jpg", ".jpeg")
+            )
+            if candidates:
+                with Image.open(candidates[0]) as source_image:
+                    source_image.thumbnail((40, 40))
+                    self._brand_logo = ImageTk.PhotoImage(source_image.copy())
+                ttk.Label(brand, image=self._brand_logo, style="Header.TLabel").pack(
+                    side="left", padx=(0, 10)
+                )
+        except (ImportError, OSError, ValueError):
+            logger.info("Brand logo unavailable; continuing with text branding.")
+        ttk.Label(brand, text="KasirKita", style="Header.TLabel").pack(side="left")
         ttk.Label(
             header,
             text="DESKTOP  •  LOKAL",
@@ -355,6 +377,41 @@ class MainWindow:
         self._build_history_tab()
         self._build_report_tab()
         self._build_settings_tab()
+
+        footer = ttk.Frame(shell, padding=(2, 9, 2, 0))
+        footer.pack(fill="x", side="bottom")
+        ttk.Label(
+            footer,
+            text="KasirKita bisa saja melakukan kesalahan.",
+            foreground="#64748b",
+        ).pack(side="left")
+        self.support_link = tk.Label(
+            footer,
+            text="Klik di sini untuk melaporkan",
+            foreground="#2563eb",
+            background="#f4f6f8",
+            cursor="hand2",
+            font=("Segoe UI", 9, "underline"),
+        )
+        self.support_link.pack(side="left", padx=(4, 0))
+        self.support_link.bind("<Button-1>", self.open_support_page)
+        self.support_link.bind("<Return>", self.open_support_page)
+        self.support_link.configure(takefocus=True)
+        self.support_link.bind("<Enter>", lambda _event: self.support_link.configure(foreground="#1d4ed8"))
+        self.support_link.bind("<Leave>", lambda _event: self.support_link.configure(foreground="#2563eb"))
+
+    def open_support_page(self, _event=None) -> None:
+        """Open the official Choco AI support platform in the default browser."""
+        try:
+            webbrowser.open(CHOCO_AI_URL, new=2)
+        except Exception:
+            logger.exception("Unable to open the support page")
+            messagebox.showerror(
+                "Bantuan tidak dapat dibuka",
+                "Halaman bantuan tidak dapat dibuka otomatis. Buka alamat berikut di browser:\n"
+                + CHOCO_AI_URL,
+                parent=self.root,
+            )
 
     def _build_cashier_tab(self) -> None:
         self.cashier_tab.columnconfigure(0, weight=3)
