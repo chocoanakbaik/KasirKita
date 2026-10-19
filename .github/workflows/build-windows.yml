@@ -1,0 +1,61 @@
+name: Build Windows desktop package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.8"]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install pinned build dependencies
+        run: |
+          python -m pip install --upgrade "pip<25"
+          python -m pip install -r requirements-build.txt
+      - name: Compile application and tests
+        run: python -m compileall -q kasirkita tests
+      - name: Run automated tests
+        run: python -m unittest discover -v
+      - name: Build portable executable
+        run: pyinstaller --clean --noconfirm kasirkita.spec
+      - name: Create portable package and checksum
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item -Recurse dist/KasirKita package/KasirKita
+          Copy-Item README.md package/README.md
+          Copy-Item docs/PANDUAN_PENGGUNA_ALPHA.md package/PANDUAN_PENGGUNA.md
+          @'
+          KasirKita Desktop
+          Jalankan KasirKita.exe dari folder KasirKita.
+          Data aplikasi disimpan pada folder data pengguna Windows.
+          Jangan hapus folder data pengguna saat memperbarui aplikasi.
+          Backup data sebelum mengganti versi.
+          @' | Set-Content -Encoding UTF8 package/PETUNJUK.txt
+          Compress-Archive -Path package/* -DestinationPath KasirKita-Windows-Portable.zip -Force
+          Get-FileHash KasirKita-Windows-Portable.zip -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash)  KasirKita-Windows-Portable.zip" } |
+            Set-Content -Encoding ASCII KasirKita-Windows-Portable.sha256
+      - name: Upload testable package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KasirKita-Windows-Portable-Python38
+          path: |
+            KasirKita-Windows-Portable.zip
+            KasirKita-Windows-Portable.sha256
+          if-no-files-found: error
