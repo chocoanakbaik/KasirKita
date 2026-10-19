@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from pathlib import Path
 from typing import Dict, Optional
 
 from kasirkita.infrastructure.backup import BackupError, DatabaseBackupService
@@ -431,9 +433,8 @@ class MainWindow:
             )
             return
         try:
-            import os
-            source_path = os.path.normcase(os.path.abspath(source))
-            safety_backup_path = os.path.normcase(os.path.abspath(safety_path))
+            source_path = Path(source).expanduser().resolve()
+            safety_backup_path = Path(safety_path).expanduser().resolve()
             if source_path == safety_backup_path:
                 raise BackupError("File backup sumber dan backup pengaman harus berbeda.")
             self.backup_service.create_backup(safety_path)
