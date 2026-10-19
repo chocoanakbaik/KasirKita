@@ -16,6 +16,7 @@ from kasirkita.infrastructure.product_repository import (
 from kasirkita.services.checkout import CheckoutError, CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog, ProductValidationError
 from kasirkita.services.sales_history import SalesHistoryService, SalesHistoryValidationError
+from kasirkita.services.stock import StockAdjustmentError, StockService
 
 logger = logging.getLogger("kasirkita.ui")
 
@@ -110,6 +111,82 @@ class ProductDialog(tk.Toplevel):
         self.destroy()
 
 
+class StockAdjustmentDialog(tk.Toplevel):
+    """Modal form for an audited stock increase or decrease."""
+
+    def __init__(self, parent, product: dict) -> None:
+        super().__init__(parent)
+        self.title("Penyesuaian stok")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.result = None
+        self._product = product
+
+        frame = ttk.Frame(self, padding=18)
+        frame.grid(row=0, column=0, sticky="nsew")
+        ttk.Label(frame, text=product["name"], style="Subheader.TLabel").grid(
+            row=0, column=0, columnspan=2, sticky="w", pady=(0, 10)
+        )
+        ttk.Label(frame, text="Stok saat ini").grid(row=1, column=0, sticky="w", pady=5)
+        ttk.Label(frame, text=str(product["stock_quantity"]) + " unit").grid(
+            row=1, column=1, sticky="w", pady=5
+        )
+        ttk.Label(frame, text="Jenis perubahan").grid(row=2, column=0, sticky="w", pady=5)
+        self.mode_var = tk.StringVar(value="in")
+        self.mode = ttk.Combobox(
+            frame,
+            textvariable=self.mode_var,
+            values=("in", "out"),
+            state="readonly",
+            width=28,
+        )
+        self.mode.grid(row=2, column=1, sticky="ew", pady=5)
+        self.mode.set("in")
+        ttk.Label(frame, text="Jumlah unit").grid(row=3, column=0, sticky="w", pady=5)
+        self.quantity_entry = ttk.Entry(frame, width=32)
+        self.quantity_entry.grid(row=3, column=1, sticky="ew", pady=5)
+        ttk.Label(frame, text="Alasan").grid(row=4, column=0, sticky="w", pady=5)
+        self.note_entry = ttk.Entry(frame, width=32)
+        self.note_entry.grid(row=4, column=1, sticky="ew", pady=5)
+        ttk.Label(
+            frame,
+            text="Gunakan alasan yang jelas; setiap perubahan dicatat dalam riwayat stok.",
+            wraplength=340,
+        ).grid(row=5, column=0, columnspan=2, sticky="w", pady=(5, 10))
+        buttons = ttk.Frame(frame)
+        buttons.grid(row=6, column=0, columnspan=2, sticky="e")
+        ttk.Button(buttons, text="Batal", command=self.destroy).pack(side="right")
+        ttk.Button(buttons, text="Simpan", command=self._submit).pack(
+            side="right", padx=(0, 8)
+        )
+        self.bind("<Escape>", lambda _event: self.destroy())
+        self.bind("<Return>", lambda _event: self._submit())
+        self.grab_set()
+        self.quantity_entry.focus_set()
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+
+    def _submit(self) -> None:
+        quantity_text = self.quantity_entry.get().strip()
+        if not quantity_text.isdigit():
+            messagebox.showerror(
+                "Jumlah tidak valid",
+                "Jumlah harus berupa bilangan bulat positif.",
+                parent=self,
+            )
+            return
+        quantity = int(quantity_text)
+        if quantity <= 0 or quantity > 2_147_483_647:
+            messagebox.showerror(
+                "Jumlah tidak valid",
+                "Jumlah harus lebih besar dari nol dan dalam batas yang didukung.",
+                parent=self,
+            )
+            return
+        delta = quantity if self.mode_var.get() == "in" else -quantity
+        self.result = {"delta": delta, "note": self.note_entry.get()}
+        self.destroy()
+
+
 class MainWindow:
     """Own the desktop widgets and connect them to application services."""
 
@@ -120,12 +197,14 @@ class MainWindow:
         checkout: CheckoutService,
         sales_history: SalesHistoryService,
         backup_service: DatabaseBackupService,
+        stock_service: StockService,
     ) -> None:
         self.root = root
         self.catalog = catalog
         self.checkout_service = checkout
         self.sales_history = sales_history
         self.backup_service = backup_service
+        self.stock_service = stock_service
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
         self._sales_rows: Dict[int, dict] = {}
@@ -297,6 +376,9 @@ class MainWindow:
             side="right", padx=8
         )
         ttk.Button(toolbar, text="Edit detail", command=self.edit_selected_product).pack(
+            side="right", padx=8
+        )
+        ttk.Button(toolbar, text="Penyesuaian stok", command=self.adjust_selected_stock).pack(
             side="right", padx=8
         )
 
@@ -663,6 +745,33 @@ class MainWindow:
         except Exception:
             logger.exception("Failed to update product")
             messagebox.showerror("Kesalahan", "Perubahan produk gagal disimpan.", parent=self.root)
+
+    def adjust_selected_stock(self) -> None:
+        product = self._selected_product()
+        if product is None:
+            return
+        dialog = StockAdjustmentDialog(self.root, product)
+        self.root.wait_window(dialog)
+        if dialog.result is None:
+            return
+        try:
+            updated_product = self.stock_service.adjust_stock(
+                product["id"], dialog.result["delta"], dialog.result["note"]
+            )
+            self.refresh_products()
+            self.refresh_cashier_products()
+            direction = "ditambah" if dialog.result["delta"] > 0 else "dikurangi"
+            messagebox.showinfo(
+                "Stok diperbarui",
+                "Stok " + updated_product["name"] + " berhasil " + direction
+                + ". Stok sekarang: " + str(updated_product["stock_quantity"]) + " unit.",
+                parent=self.root,
+            )
+        except (StockAdjustmentError, ProductNotFoundError) as exc:
+            messagebox.showerror("Penyesuaian stok gagal", str(exc), parent=self.root)
+        except Exception:
+            logger.exception("Failed to adjust product stock")
+            messagebox.showerror("Kesalahan", "Penyesuaian stok gagal disimpan.", parent=self.root)
 
     def toggle_selected_product(self) -> None:
         product = self._selected_product()
