@@ -1,6 +1,7 @@
 """Tkinter desktop interface for the initial KasirKita workflow."""
 from __future__ import annotations
 
+import csv
 import logging
 import re
 import tkinter as tk
@@ -544,6 +545,7 @@ class MainWindow:
         toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         ttk.Label(toolbar, text="Katalog produk", style="Subheader.TLabel").pack(side="left")
         ttk.Button(toolbar, text="Tambah produk", command=self.add_product).pack(side="right")
+        ttk.Button(toolbar, text="Ekspor katalog CSV", command=self.export_products_csv).pack(side="right", padx=8)
         ttk.Button(toolbar, text="Aktifkan / nonaktifkan", command=self.toggle_selected_product).pack(
             side="right", padx=8
         )
