@@ -10,6 +10,8 @@
 - [ ] Stock adjustment tests cover increases, decreases, invalid reasons, and prevention of negative stock.
 - [ ] Backup/restore tests cover valid files, invalid files, recovery behavior, and Windows file-handle cleanup.
 - [ ] UI smoke test passes on Windows.
+- [ ] First-run tutorial appears on a fresh local profile, persists completion/skip state, does not repeat on next launch, and can be reopened from the help control.
+- [ ] Tutorial and its persisted state behave correctly after backup/restore and application upgrade.
 - [ ] No known failing tests or unresolved high-severity defects remain.
 
 ## Manual desktop verification
@@ -18,6 +20,8 @@
 - [ ] Launch on Windows 8.1 x64 on real hardware before claiming support for that OS.
 - [ ] Launch on each other Windows version advertised as supported.
 - [ ] Confirm the app creates data only in the intended user data directory.
+- [ ] Confirm the first-run tutorial appears once, can be skipped, and is available later from Panduan / Tutorial.
+- [ ] Confirm no internet connection is required for onboarding or core cashier workflows.
 - [ ] Confirm a user without write access to the data directory receives a clear error.
 - [ ] Add, edit, search, disable, and re-enable products.
 - [ ] Adjust stock and verify the audit trail.
