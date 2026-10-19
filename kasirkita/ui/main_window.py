@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
