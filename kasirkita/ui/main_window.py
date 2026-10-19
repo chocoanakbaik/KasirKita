@@ -50,7 +50,7 @@ def parse_tax_rate_basis_points(value: str) -> int:
     if not isinstance(value, str):
         raise ValueError("Tarif pajak harus berupa persentase.")
     cleaned = value.strip().replace(",", ".")
-    if not re.fullmatch(r"(?:[0-9]{1,3})(?:\\.[0-9]{1,2})?", cleaned):
+    if not re.fullmatch(r"(?:[0-9]{1,3})(?:\.[0-9]{1,2})?", cleaned):
         raise ValueError("Tarif gunakan angka 0 sampai 100, maksimal dua angka desimal.")
     try:
         rate = Decimal(cleaned)
@@ -1063,14 +1063,16 @@ class MainWindow:
 
     def refresh_cart(self) -> None:
         self.cart_tree.delete(*self.cart_tree.get_children())
-        total = 0
+        cart_items = [
+            {"product_id": product_id, "quantity": quantity}
+            for product_id, quantity in self.cart.items()
+        ]
         for product_id, quantity in self.cart.items():
             try:
                 product = self.catalog.get_product(product_id)
             except ProductNotFoundError:
                 continue
             line_total = product["unit_price_rupiah"] * quantity
-            total += line_total
             self.cart_tree.insert(
                 "",
                 "end",
@@ -1082,7 +1084,35 @@ class MainWindow:
                     format_rupiah(line_total),
                 ),
             )
-        self.total_var.set(format_rupiah(total))
+        try:
+            preview = self.checkout_service.preview(cart_items) if cart_items else {
+                "subtotal_rupiah": 0,
+                "tax_rupiah": 0,
+                "total_rupiah": 0,
+                "tax_enabled": False,
+                "tax_rate_basis_points": 0,
+                "tax_mode": "exclusive",
+                "tax_label": "Pajak",
+            }
+            self.subtotal_var.set(format_rupiah(preview["subtotal_rupiah"]))
+            self.tax_var.set(format_rupiah(preview["tax_rupiah"]))
+            if preview["tax_enabled"]:
+                mode_text = (
+                    "termasuk harga" if preview["tax_mode"] == "inclusive"
+                    else "di luar harga"
+                )
+                self.tax_label_var.set(
+                    preview["tax_label"] + " " + format_tax_rate(preview["tax_rate_basis_points"])
+                    + " (" + mode_text + ")"
+                )
+            else:
+                self.tax_label_var.set("Pajak (nonaktif)")
+            self.total_var.set(format_rupiah(preview["total_rupiah"]))
+        except CheckoutError:
+            self.subtotal_var.set("-")
+            self.tax_label_var.set("Periksa keranjang")
+            self.tax_var.set("-")
+            self.total_var.set("Periksa keranjang")
 
     def process_checkout(self) -> None:
         if not self.cart:
@@ -1107,9 +1137,15 @@ class MainWindow:
         ]
         try:
             result = self.checkout_service.checkout(items, received)
+            tax_description = (
+                result["tax_label"] + " " + format_tax_rate(result["tax_rate_basis_points"])
+                if result["tax_enabled"] else "Pajak nonaktif"
+            )
             messagebox.showinfo(
                 "Transaksi berhasil",
                 "Transaksi " + result["receipt_number"] + " berhasil.\n"
+                + "Subtotal: " + format_rupiah(result["subtotal_rupiah"]) + "\n"
+                + tax_description + ": " + format_rupiah(result["tax_rupiah"]) + "\n"
                 + "Total: " + format_rupiah(result["total_rupiah"]) + "\n"
                 + "Kembalian: " + format_rupiah(result["change_rupiah"]),
                 parent=self.root,
