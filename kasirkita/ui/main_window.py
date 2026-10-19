@@ -1340,9 +1340,65 @@ class MainWindow:
                 parent=window,
             )
 
+        def save_receipt_pdf() -> None:
+            """Export the persisted receipt snapshot as a standalone PDF."""
+            destination = filedialog.asksaveasfilename(
+                parent=window, title="Simpan struk PDF", defaultextension=".pdf",
+                initialfile=sale["receipt_number"].replace("/", "-") + ".pdf",
+                filetypes=(("Dokumen PDF", "*.pdf"), ("Semua file", "*.*")),
+            )
+            if not destination:
+                return
+            try:
+                from reportlab.lib import colors
+                from reportlab.lib.pagesizes import A4
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.lib.units import mm
+                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+                target = Path(destination).expanduser()
+                target.parent.mkdir(parents=True, exist_ok=True)
+                styles = getSampleStyleSheet()
+                story = [
+                    Paragraph("KasirKita — Struk Transaksi", styles["Title"]),
+                    Paragraph("Nomor: " + str(sale["receipt_number"]), styles["Normal"]),
+                    Paragraph("Waktu UTC: " + str(sale["created_at"]), styles["Normal"]),
+                    Paragraph("Status: " + str(sale["status"]), styles["Normal"]),
+                    Spacer(1, 6 * mm),
+                ]
+                rows = [["Produk", "Qty", "Harga", "Subtotal"]]
+                for item in sale["items"]:
+                    rows.append([
+                        str(item["name"])[:100], str(item["quantity"]),
+                        format_rupiah(item["unit_price_rupiah"]),
+                        format_rupiah(item["line_total_rupiah"]),
+                    ])
+                story.append(Table(rows, repeatRows=1, colWidths=[75*mm, 15*mm, 35*mm, 35*mm],
+                    style=TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#12304A")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#CCD5DE")),
+                        ("PADDING", (0, 0), (-1, -1), 5),
+                    ])))
+                story.extend([
+                    Spacer(1, 5 * mm),
+                    Paragraph("Subtotal: " + format_rupiah(sale["subtotal_rupiah"]), styles["Normal"]),
+                    Paragraph(tax_description + ": " + format_rupiah(sale["tax_rupiah"]), styles["Normal"]),
+                    Paragraph("<b>TOTAL: " + format_rupiah(sale["total_rupiah"]) + "</b>", styles["Heading2"]),
+                    Paragraph("Pembayaran: " + payment_text, styles["Normal"]),
+                    Spacer(1, 4 * mm),
+                    Paragraph("Struk dibuat dari data transaksi tersimpan. Periksa kembali data transaksi.", styles["Italic"]),
+                ])
+                SimpleDocTemplate(str(target), pagesize=A4, rightMargin=15*mm,
+                    leftMargin=15*mm, topMargin=15*mm, bottomMargin=15*mm).build(story)
+                messagebox.showinfo("Struk disimpan", "Struk PDF berhasil disimpan:\\n" + str(target), parent=window)
+            except Exception:
+                logger.exception("Failed to export receipt PDF")
+                messagebox.showerror("Struk gagal disimpan", "PDF struk tidak dapat dibuat. Periksa izin folder dan dependensi.", parent=window)
+
         actions = ttk.Frame(frame)
         actions.pack(fill="x", anchor="e", pady=(10, 0))
         ttk.Button(actions, text="Simpan struk TXT", command=save_receipt_text).pack(side="left")
+        ttk.Button(actions, text="Simpan struk PDF", command=save_receipt_pdf).pack(side="left", padx=(8, 0))
         ttk.Button(actions, text="Tutup", command=window.destroy).pack(side="right")
 
     def refresh_products(self) -> None:
