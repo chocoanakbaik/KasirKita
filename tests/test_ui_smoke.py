@@ -12,6 +12,7 @@ from kasirkita.services.sales_history import SalesHistoryService
 from kasirkita.services.sales_report import SalesReportService
 from kasirkita.services.stock import StockService
 from kasirkita.services.tax_settings import TaxSettingsService
+from kasirkita.services.onboarding import OnboardingService
 from kasirkita.ui.main_window import CHOCO_AI_URL, MainWindow
 
 
@@ -32,12 +33,14 @@ class DesktopUISmokeTests(unittest.TestCase):
                 StockService(connection),
                 SalesReportService(connection),
                 TaxSettingsService(connection),
+                OnboardingService(connection),
             )
             self.assertEqual(len(app.tabs.tabs()), 5)
             self.assertEqual(app.tabs.tab(app.tabs.tabs()[0], "text"), "Kasir")
             self.assertEqual(app.tabs.tab(app.tabs.tabs()[4], "text"), "Pengaturan")
             self.assertEqual(app.support_link.cget("text"), "Klik di sini untuk melaporkan")
             self.assertEqual(CHOCO_AI_URL, "https://choco-ai-platform.netlify.app/")
+            self.assertTrue(app.onboarding is not None)
             root.update_idletasks()
         finally:
             root.destroy()
