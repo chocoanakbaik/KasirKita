@@ -24,7 +24,13 @@ Pada tab **Produk**, tombol **Ekspor katalog CSV** menyimpan hasil katalog yang 
 
 Produk yang sudah dipakai dalam transaksi tidak dihapus dari histori. Gunakan status nonaktif agar produk tidak dapat dipilih untuk transaksi baru.
 
-## 3. Penyesuaian stok
+## 3. Input kode pada kasir (uji barcode keyboard)
+
+Di halaman Kasir tersedia kolom **Barcode / SKU**. Ketik SKU produk yang sudah terdaftar lalu tekan Enter, atau gunakan scanner USB yang berperilaku seperti keyboard dan mengirim Enter setelah kode. Produk aktif akan masuk ke keranjang; pemindaian berulang menambah jumlah sesuai kolom Jumlah. Kode tidak dikenal akan menampilkan peringatan. Tanpa scanner, pengujian tetap dapat dilakukan dengan mengetik SKU secara manual.
+
+Saat ini nilai yang dicari adalah SKU produk, bukan kolom barcode pabrikan yang terpisah. Kode internal seperti `KK-000001` dapat dipakai sebagai SKU jika belum digunakan. Kode internal tidak sama dengan GTIN resmi GS1; jangan mengklaimnya sebagai identitas resmi perdagangan global. Pembuatan gambar/label barcode untuk dicetak belum tersedia.
+
+## 4. Penyesuaian stok
 
 1. Pilih produk pada tab **Produk**.
 2. Tekan **Penyesuaian stok**.
@@ -34,7 +40,7 @@ Produk yang sudah dipakai dalam transaksi tidak dihapus dari histori. Gunakan st
 
 Pengurangan stok yang membuat stok negatif ditolak. Penjualan juga mengurangi stok dalam transaksi database yang sama dengan pencatatan penjualan.
 
-## 4. Memproses penjualan tunai
+## 5. Memproses penjualan tunai
 
 1. Buka tab **Kasir**.
 2. Cari dan pilih produk.
@@ -45,7 +51,7 @@ Pengurangan stok yang membuat stok negatif ditolak. Penjualan juga mengurangi st
 
 Sebelum menyimpan penjualan, aplikasi membaca ulang harga dan stok dari database. Jika stok tidak cukup, produk tidak aktif, atau uang tidak cukup, transaksi ditolak. Jika salah satu langkah penyimpanan gagal, seluruh perubahan transaksi dan stok harus dibatalkan.
 
-## 5. Pengaturan pajak
+## 6. Pengaturan pajak
 
 1. Buka tab **Pengaturan**.
 2. Pajak dalam keadaan nonaktif secara default.
