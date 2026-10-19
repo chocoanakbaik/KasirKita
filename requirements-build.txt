@@ -2,3 +2,7 @@
 # Pinning the last PyInstaller line that supports Python 3.8.
 pyinstaller==5.13.2
 Pillow==10.4.0
+
+# Local spreadsheet and PDF exports.
+openpyxl==3.1.5
+reportlab==4.2.5
