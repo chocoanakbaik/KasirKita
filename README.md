@@ -49,7 +49,7 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
 - Database lokal SQLite dan log aplikasi lokal.
 - Status tutorial dan preferensi onboarding tersimpan secara lokal; tidak menggunakan akun atau server.
-- Konfigurasi build portable Windows berbasis PyInstaller dan workflow GitHub Actions untuk menghasilkan artefak ZIP serta checksum SHA-256.
+- Build Windows melalui GitHub Actions menghasilkan paket portable ZIP dan installer Windows `KasirKita-Setup.exe` berbasis Inno Setup, masing-masing dengan checksum SHA-256. Installer menyediakan wizard instalasi, shortcut Start Menu, opsi shortcut Desktop, dan uninstaller Windows. Hasil build tersedia sebagai artifact pada workflow run; installer belum disebut siap rilis sampai build dan pemasangannya diuji.
 - Pemberitahuan bahwa aplikasi dapat melakukan kesalahan, dengan tautan bantuan yang membuka platform Choco AI di browser bawaan. Logo merek ditampilkan bila Pillow tersedia; aplikasi tetap berjalan tanpa Pillow.
 
 ## Menjalankan Pengujian
