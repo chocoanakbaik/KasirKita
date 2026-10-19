@@ -32,10 +32,14 @@ def main() -> int:
     try:
         log_directory.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(
-            filename=str(log_directory / "kasirkita.log"),
+            handlers=[
+                logging.FileHandler(
+                    str(log_directory / "kasirkita.log"),
+                    encoding="utf-8",
+                )
+            ],
             level=logging.INFO,
             format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-            encoding="utf-8",
         )
         connection = connect_database(data_directory / "kasirkita.sqlite3")
         initialize_database(connection)
