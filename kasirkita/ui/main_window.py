@@ -23,6 +23,7 @@ from kasirkita.services.sales_history import SalesHistoryService, SalesHistoryVa
 from kasirkita.services.sales_report import SalesReportService, SalesReportValidationError
 from kasirkita.services.report_export import SalesReportExportError, export_sales_report_csv
 from kasirkita.services.tax_settings import TaxSettingsError, TaxSettingsService
+from kasirkita.services.onboarding import OnboardingService
 from kasirkita.services.stock import StockAdjustmentError, StockService
 
 logger = logging.getLogger("kasirkita.ui")
@@ -232,6 +233,7 @@ class MainWindow:
         stock_service: StockService,
         sales_report: SalesReportService,
         tax_settings: TaxSettingsService,
+        onboarding: OnboardingService,
     ) -> None:
         self.root = root
         self.catalog = catalog
@@ -241,6 +243,7 @@ class MainWindow:
         self.stock_service = stock_service
         self.sales_report = sales_report
         self.tax_settings = tax_settings
+        self.onboarding = onboarding
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
         self._sales_rows: Dict[int, dict] = {}
@@ -257,6 +260,7 @@ class MainWindow:
         self.refresh_sales()
         self.refresh_report()
         self.load_tax_settings()
+        self.root.after(1500, self._show_first_run_tutorial)
 
     def _configure_style(self) -> None:
         style = ttk.Style(self.root)
@@ -386,6 +390,7 @@ class MainWindow:
             text="KasirKita bisa saja melakukan kesalahan.",
             foreground="#64748b",
         ).pack(side="left")
+        ttk.Button(footer, text="Panduan / Tutorial", command=self.open_tutorial).pack(side="right", padx=(8, 0))
         self.support_link = tk.Label(
             footer,
             text="Klik di sini untuk melaporkan",
@@ -400,6 +405,111 @@ class MainWindow:
         self.support_link.configure(takefocus=True)
         self.support_link.bind("<Enter>", lambda _event: self.support_link.configure(foreground="#1d4ed8"))
         self.support_link.bind("<Leave>", lambda _event: self.support_link.configure(foreground="#2563eb"))
+
+    def _show_first_run_tutorial(self) -> None:
+        """Show onboarding only when no completed/skipped state exists locally."""
+        try:
+            if not self.onboarding.has_seen_tutorial() and self.root.winfo_exists():
+                self.open_tutorial(first_run=True)
+        except Exception:
+            logger.exception("Unable to check first-run tutorial state")
+            # Keep the main application usable even if onboarding state cannot be read.
+
+    def open_tutorial(self, first_run: bool = False) -> None:
+        """Open a lightweight offline, step-by-step introduction to the POS."""
+        pages = [
+            ("Selamat datang di KasirKita",
+             "KasirKita berjalan secara lokal di komputer ini. Data transaksi dan produk disimpan di database lokal; koneksi internet tidak diperlukan untuk kegiatan kasir."),
+            ("1. Siapkan katalog Produk",
+             "Buka tab Produk, pilih Tambah produk, lalu isi SKU/kode unik, nama, harga dalam rupiah, dan stok awal. Periksa harga dan stok sebelum mulai melayani pembeli."),
+            ("2. Catat stok dengan benar",
+             "Gunakan Penyesuaian stok untuk mencatat barang masuk atau keluar. Isi alasan yang jelas agar perubahan stok dapat ditelusuri. Jangan menghapus atau mengubah database secara manual."),
+            ("3. Lakukan transaksi",
+             "Di tab Kasir, cari lalu pilih produk, tentukan jumlah, dan tambahkan ke keranjang. Periksa subtotal dan total, masukkan uang tunai yang diterima, lalu konfirmasi pembayaran. Stok berkurang saat transaksi berhasil disimpan."),
+            ("4. Periksa riwayat dan laporan",
+             "Riwayat transaksi menampilkan transaksi yang tersimpan dan detail struk. Laporan merangkum penjualan pada tanggal yang dipilih dan dapat diekspor. Cocokkan laporan dengan catatan kas usaha."),
+            ("5. Pajak, backup, dan keamanan data",
+             "Pajak tidak aktif secara default. Aktifkan hanya setelah label dan tarif diverifikasi untuk usaha Anda. Buat backup rutin ke lokasi berbeda dan simpan file backup dengan aman. Pemulihan backup mengganti data aktif."),
+            ("Selesai — mulai dengan data yang benar",
+             "Sebelum dipakai untuk transaksi sungguhan, masukkan katalog yang benar, cek harga dan stok, lalu lakukan pengujian transaksi. KasirKita adalah alat bantu pencatatan, bukan pengganti pemeriksaan akuntansi atau kewajiban pajak."),
+        ]
+        window = tk.Toplevel(self.root)
+        window.title("Panduan KasirKita")
+        window.geometry("620x360")
+        window.minsize(520, 320)
+        window.transient(self.root)
+        window.grab_set()
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(1, weight=1)
+
+        header = ttk.Frame(window, padding=(22, 18, 22, 8))
+        header.grid(row=0, column=0, sticky="ew")
+        title_var = tk.StringVar()
+        progress_var = tk.StringVar()
+        ttk.Label(header, textvariable=title_var, style="Subheader.TLabel").pack(anchor="w")
+        ttk.Label(header, textvariable=progress_var, foreground="#64748b").pack(anchor="w", pady=(5, 0))
+        body = ttk.Frame(window, padding=(22, 8, 22, 14))
+        body.grid(row=1, column=0, sticky="nsew")
+        body.columnconfigure(0, weight=1)
+        body.rowconfigure(0, weight=1)
+        body_text = tk.Text(body, wrap="word", height=7, width=60, relief="flat",
+                            background="#ffffff", foreground="#17212b",
+                            font=("Segoe UI", 11), padx=12, pady=12)
+        body_text.grid(row=0, column=0, sticky="nsew")
+        body_text.configure(state="disabled")
+        actions = ttk.Frame(window, padding=(22, 0, 22, 18))
+        actions.grid(row=2, column=0, sticky="ew")
+        actions.columnconfigure(0, weight=1)
+        index = [0]
+
+        def render_page() -> None:
+            title, text = pages[index[0]]
+            title_var.set(title)
+            progress_var.set("Langkah " + str(index[0] + 1) + " dari " + str(len(pages)))
+            body_text.configure(state="normal")
+            body_text.delete("1.0", "end")
+            body_text.insert("1.0", text)
+            body_text.configure(state="disabled")
+            back_button.configure(state="normal" if index[0] else "disabled")
+            next_button.configure(text="Selesai" if index[0] == len(pages) - 1 else "Lanjut")
+            skip_button.configure(state="normal" if index[0] < len(pages) - 1 else "disabled")
+
+        def close_as_skipped() -> None:
+            try:
+                self.onboarding.mark_skipped()
+            except Exception:
+                logger.exception("Could not persist skipped tutorial state")
+            window.destroy()
+
+        def go_next() -> None:
+            if index[0] < len(pages) - 1:
+                index[0] += 1
+                render_page()
+                return
+            try:
+                self.onboarding.mark_completed()
+            except Exception:
+                logger.exception("Could not persist completed tutorial state")
+                messagebox.showwarning(
+                    "Panduan belum tersimpan",
+                    "Panduan selesai, tetapi statusnya tidak bisa disimpan. Panduan mungkin muncul lagi saat aplikasi dibuka.",
+                    parent=window,
+                )
+            window.destroy()
+
+        def go_back() -> None:
+            if index[0] > 0:
+                index[0] -= 1
+                render_page()
+
+        ttk.Button(actions, text="Lewati", command=close_as_skipped).grid(row=0, column=1, sticky="e")
+        back_button = ttk.Button(actions, text="Kembali", command=go_back)
+        back_button.grid(row=0, column=2, padx=(8, 0))
+        next_button = ttk.Button(actions, text="Lanjut", style="Accent.TButton", command=go_next)
+        next_button.grid(row=0, column=3, padx=(8, 0))
+        window.protocol("WM_DELETE_WINDOW", window.destroy)
+        window.bind("<Escape>", lambda _event: window.destroy())
+        render_page()
 
     def open_support_page(self, _event=None) -> None:
         """Open the official Choco AI support platform in the default browser."""
