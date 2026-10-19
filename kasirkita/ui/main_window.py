@@ -1053,7 +1053,63 @@ class MainWindow:
             + "  |  Total: " + format_rupiah(sale["total_rupiah"]),
             font=("Segoe UI", 11, "bold"),
         ).pack(anchor="e", pady=(2, 0))
-        ttk.Button(frame, text="Tutup", command=window.destroy).pack(anchor="e", pady=(10, 0))
+        def save_receipt_text() -> None:
+            """Export the persisted receipt snapshot to a UTF-8 text file."""
+            suggested = sale["receipt_number"].replace("/", "-") + ".txt"
+            destination = filedialog.asksaveasfilename(
+                parent=window,
+                title="Simpan struk transaksi",
+                defaultextension=".txt",
+                initialfile=suggested,
+                filetypes=(("Struk teks UTF-8", "*.txt"), ("Semua file", "*.*")),
+            )
+            if not destination:
+                return
+            receipt_lines = [
+                "KASIRKITA",
+                "=" * 36,
+                "Nomor struk : " + str(sale["receipt_number"]),
+                "Waktu (UTC) : " + str(sale["created_at"]),
+                "Status      : " + str(sale["status"]),
+                "-" * 36,
+            ]
+            for item in sale["items"]:
+                receipt_lines.extend([
+                    str(item["name"]),
+                    "  " + str(item["quantity"]) + " x " + format_rupiah(item["unit_price_rupiah"]),
+                    "  Subtotal: " + format_rupiah(item["line_total_rupiah"]),
+                ])
+            receipt_lines.extend([
+                "-" * 36,
+                "Subtotal: " + format_rupiah(sale["subtotal_rupiah"]),
+                tax_description + ": " + format_rupiah(sale["tax_rupiah"]),
+                "TOTAL: " + format_rupiah(sale["total_rupiah"]),
+                "Pembayaran: " + payment_text,
+                "",
+                "Struk dibuat dari data transaksi yang tersimpan.",
+                "KasirKita dapat melakukan kesalahan; periksa kembali data transaksi.",
+            ])
+            try:
+                with open(destination, "w", encoding="utf-8", newline="\n") as receipt_file:
+                    receipt_file.write("\n".join(receipt_lines) + "\n")
+            except OSError:
+                logger.exception("Failed to export receipt")
+                messagebox.showerror(
+                    "Struk gagal disimpan",
+                    "File struk tidak dapat disimpan. Periksa izin folder dan ruang disk.",
+                    parent=window,
+                )
+                return
+            messagebox.showinfo(
+                "Struk disimpan",
+                "Struk berhasil disimpan sebagai file teks.",
+                parent=window,
+            )
+
+        actions = ttk.Frame(frame)
+        actions.pack(fill="x", anchor="e", pady=(10, 0))
+        ttk.Button(actions, text="Simpan struk TXT", command=save_receipt_text).pack(side="left")
+        ttk.Button(actions, text="Tutup", command=window.destroy).pack(side="right")
 
     def refresh_products(self) -> None:
         try:
