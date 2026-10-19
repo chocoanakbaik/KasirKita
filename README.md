@@ -42,10 +42,11 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 - Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan stok.
 - Transaksi tunai dengan validasi uang diterima dan kembalian, snapshot nama/harga produk, dan pengurangan stok atomik.
 - Pajak opsional dengan status nonaktif secara default, tarif yang dikonfigurasi pengguna, mode harga termasuk/tidak termasuk pajak, pembulatan integer, dan snapshot konfigurasi pajak pada transaksi.
-- Riwayat transaksi dan detail struk berdasarkan data yang tersimpan.
+- Riwayat transaksi, detail struk, dan ekspor struk ke file TXT UTF-8 untuk dicetak melalui aplikasi teks/printer yang tersedia.
 - Ringkasan penjualan berdasarkan tanggal lokal komputer, dengan ekspor laporan CSV UTF-8 yang ramah Excel.
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
 - Database lokal SQLite dan log aplikasi lokal.
+- Konfigurasi build portable Windows berbasis PyInstaller dan workflow GitHub Actions untuk menghasilkan artefak ZIP serta checksum SHA-256.
 - Pemberitahuan bahwa aplikasi dapat melakukan kesalahan, dengan tautan bantuan yang membuka platform Choco AI di browser bawaan. Logo merek ditampilkan bila Pillow tersedia; aplikasi tetap berjalan tanpa Pillow.
 
 ## Menjalankan Pengujian
@@ -59,7 +60,7 @@ GitHub Actions menjalankan kompilasi dan pengujian otomatis pada Windows dan Ubu
 
 ## Status Rilis
 
-**Aplikasi belum dinyatakan siap dijual.** Installer/package belum disiapkan dan diuji, kompatibilitas pada Windows 8.1 belum diverifikasi langsung, dan alur UI harus melewati pemeriksaan manual end-to-end sebelum rilis. Fitur yang sudah ada tetap dapat memiliki masalah yang belum ditemukan; statusnya mengikuti bukti pengujian terbaru.
+**Aplikasi belum dinyatakan siap dijual.** Workflow build portable sudah disiapkan, tetapi hasil paket harus berhasil dibangun dan diuji sebelum dibagikan. Kompatibilitas pada Windows 8.1 belum diverifikasi langsung, dan alur UI harus melewati pemeriksaan manual end-to-end sebelum rilis. Fitur yang sudah ada tetap dapat memiliki masalah yang belum ditemukan; statusnya mengikuti bukti pengujian terbaru.
 
 ## Pajak dan PPN
 
