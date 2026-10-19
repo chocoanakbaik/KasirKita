@@ -36,8 +36,8 @@ jobs:
       - name: Create portable package and checksum
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path package | Out-Null
-          Copy-Item -Recurse dist/KasirKita package/KasirKita
+          New-Item -ItemType Directory -Force -Path package/KasirKita | Out-Null
+          Copy-Item dist/KasirKita.exe package/KasirKita/KasirKita.exe
           Copy-Item README.md package/README.md
           Copy-Item docs/PANDUAN_PENGGUNA_ALPHA.md package/PANDUAN_PENGGUNA.md
           @(
