@@ -4,6 +4,8 @@ Dokumen ini menjelaskan perilaku aplikasi yang sudah tersedia pada source saat i
 
 ## 1. Menjalankan aplikasi
 
+Saat aplikasi pertama kali berjalan pada instalasi yang belum memiliki status tutorial, KasirKita membuka panduan interaktif otomatis. Ikuti tombol **Lanjut** dan **Kembali**, atau pilih **Lewati**. Statusnya disimpan di database lokal; tutorial tidak muncul otomatis lagi setelah selesai atau dilewati. Pilih **Panduan / Tutorial** di bagian bawah jendela untuk membukanya kembali kapan saja. Jika database aplikasi dihapus atau di-reset, status tutorial ikut hilang.
+
 1. Pastikan Python dan Tkinter terpasang.
 2. Buka terminal di direktori utama repository.
 3. Jalankan `py -m kasirkita`.
@@ -83,5 +85,5 @@ Jangan menghapus backup sebelum memastikan data hasil pemulihan benar. Untuk pen
 - Pembayaran yang tersedia saat ini adalah tunai.
 - Belum ada installer resmi.
 - Kompatibilitas pada Windows 8.1 harus diuji langsung sebelum dinyatakan didukung.
-- Tampilan, pencetakan struk, laporan lanjutan, penanganan pembatalan/refund, dan prosedur rilis masih memerlukan pengembangan dan verifikasi.
+- Pembatalan/refund, pengaturan identitas usaha pada struk, dan prosedur rilis masih memerlukan pengembangan dan verifikasi.
 - Jalankan pengujian otomatis sebelum menggabungkan perubahan source.
