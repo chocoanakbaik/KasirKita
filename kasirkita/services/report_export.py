@@ -69,9 +69,12 @@ def export_sales_report_csv(report: Mapping[str, object], destination: object) -
             raise SalesReportExportError("Angka pada laporan harian tidak valid.")
         validated_daily.append((day, count, total))
 
-    target = Path(destination).expanduser()
-    if not str(destination).strip():
+    if not isinstance(destination, (str, os.PathLike)):
+        raise SalesReportExportError("Lokasi file tujuan tidak valid.")
+    destination_text = os.fspath(destination)
+    if not destination_text.strip():
         raise SalesReportExportError("Lokasi file tujuan belum ditentukan.")
+    target = Path(destination_text).expanduser()
     parent = target.parent
     temporary_path = None
     try:
