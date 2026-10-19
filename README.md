@@ -6,15 +6,15 @@ KasirKita adalah aplikasi kasir (Point of Sale/POS) yang dikembangkan untuk diju
 
 Versi pertama adalah **KasirKita Desktop**, khusus laptop dan komputer desktop. Android dan platform lain tidak termasuk fokus versi pertama.
 
-Aplikasi dirancang offline-first dengan database lokal. Server, akun online, dan layanan berbayar tidak menjadi persyaratan penggunaan.
+Aplikasi dirancang offline-first dengan database SQLite lokal. Server, akun online, dan layanan berbayar bukan persyaratan penggunaan.
 
 ## Prinsip Pengembangan
 
 - Pengerjaan dilakukan bertahap, satu bagian pada satu waktu, dengan rincian dan hubungan antarmodul diperiksa sebelum melanjutkan.
 - Target kualitas adalah tidak ada bug yang diketahui saat suatu bagian dinyatakan selesai. Setiap temuan harus dicatat, ditelusuri penyebabnya, diperbaiki, lalu diuji ulang.
-- Algoritma bisnis dipisahkan dari UI dan akses database agar perhitungan tidak memiliki versi yang berbeda di setiap layar.
+- Algoritma bisnis dipisahkan dari UI dan akses database agar perhitungan tidak memiliki versi berbeda di setiap layar.
 - Uang disimpan sebagai nilai integer rupiah; binary floating-point tidak boleh digunakan untuk total transaksi.
-- Transaksi penjualan dan perubahan stok harus dirancang sebagai operasi atomik agar kegagalan tidak meninggalkan data setengah tersimpan.
+- Penyimpanan penjualan, item penjualan, pembayaran, dan perubahan stok harus dilakukan secara atomik.
 - Pengujian tidak boleh diklaim telah dilakukan jika memang belum dijalankan. Status yang belum diuji harus dinyatakan belum terverifikasi.
 - Penyelesaian tahap ditentukan oleh kriteria penerimaan dan hasil pengujian, bukan sekadar karena kode sudah ditulis.
 
@@ -23,23 +23,34 @@ Aplikasi dirancang offline-first dengan database lokal. Server, akun online, dan
 - [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
 - [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
 
-## Menjalankan Pengujian
+## Menjalankan Aplikasi dari Source
 
-Dengan Python terpasang, jalankan dari direktori utama repository:
+Dengan Python dan Tkinter terpasang, dari direktori utama repository jalankan:
 
 ```powershell
+py -m kasirkita
+```
+
+Database lokal disimpan di folder data pengguna, bukan di samping source atau executable. Di Windows, lokasi default menggunakan folder Local AppData pengguna.
+
+## Menjalankan Pengujian
+
+```powershell
+py -m compileall -q kasirkita tests
 py -m unittest discover -v
 ```
 
-Workflow GitHub Actions juga disiapkan untuk menjalankan pengujian pada Windows dan Ubuntu dengan Python 3.10 serta 3.12. Hasil kompatibilitas hanya boleh disimpulkan dari workflow yang benar-benar selesai.
+GitHub Actions menjalankan kompilasi dan pengujian otomatis pada Windows dan Ubuntu dengan Python 3.8 serta 3.12. Workflow yang hijau membuktikan pengujian pada lingkungan tersebut, bukan otomatis membuktikan kompatibilitas pada setiap versi Windows.
 
 ## Status Implementasi
 
-Fondasi awal database SQLite dan pengujian integritas database sudah ditambahkan. Ini **belum merupakan aplikasi kasir yang siap digunakan atau dijual**. Katalog produk, layanan transaksi, stok, laporan, antarmuka, backup/restore, packaging, dan pemeriksaan kompatibilitas masih harus dikembangkan dan diuji secara bertahap.
+Sudah ada fondasi database SQLite, katalog produk, transaksi tunai awal, pengurangan stok atomik, riwayat transaksi dan detail struk, serta UI desktop awal untuk kasir dan pengelolaan produk. Status tiap bagian tetap mengikuti hasil pengujian yang benar-benar selesai.
+
+**Aplikasi ini belum dinyatakan siap dijual.** Backup/restore, packaging installer, pengujian pada Windows 8.1 secara langsung, audit alur transaksi end-to-end, dan sejumlah fitur operasional masih perlu dikerjakan sebelum rilis.
 
 ## Pajak dan PPN
 
-Fitur pajak direncanakan opsional. Perilaku PPN, pembulatan, harga termasuk/tidak termasuk pajak, dan penyimpanan aturan pajak pada transaksi historis harus ditetapkan sebelum fitur pajak diimplementasikan. Pengguna bertanggung jawab mengonfigurasi aplikasi sesuai status usaha dan ketentuan yang berlaku.
+Pada implementasi saat ini, pajak belum diterapkan dan total transaksi dihitung tanpa PPN. Fitur pajak direncanakan opsional. Perilaku PPN, pembulatan, harga termasuk/tidak termasuk pajak, dan penyimpanan aturan pajak pada transaksi historis harus ditetapkan serta diuji sebelum fitur pajak diimplementasikan. Pengguna bertanggung jawab mengonfigurasi aplikasi sesuai status usaha dan ketentuan yang berlaku.
 
 ## Prinsip Kejujuran Status
 
