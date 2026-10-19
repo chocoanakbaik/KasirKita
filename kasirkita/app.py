@@ -17,6 +17,7 @@ from kasirkita.services.sales_history import SalesHistoryService
 from kasirkita.services.sales_report import SalesReportService
 from kasirkita.services.stock import StockService
 from kasirkita.services.tax_settings import TaxSettingsService
+from kasirkita.services.onboarding import OnboardingService
 from kasirkita.ui.main_window import MainWindow
 from kasirkita.ui.splash_screen import SplashScreen
 
@@ -72,7 +73,8 @@ def main() -> int:
         stock_service = StockService(connection)
         sales_report = SalesReportService(connection)
         tax_settings = TaxSettingsService(connection)
-        MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report, tax_settings)
+        onboarding = OnboardingService(connection)
+        MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report, tax_settings, onboarding)
         root.withdraw()
         splash = SplashScreen(root)
 
