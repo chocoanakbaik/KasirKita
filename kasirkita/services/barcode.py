@@ -42,7 +42,7 @@ def make_internal_code(sequence: object) -> str:
 
 
 def find_product_by_code(connection: sqlite3.Connection, value: object) -> Optional[dict]:
-    """Find an active product by its exact SKU/internal code or dedicated barcode."""
+    """Find an active product by its exact SKU/internal code (the current scanner mapping)."""
     code = normalize_barcode(value)
     row = connection.execute(
         """SELECT id, sku, name, unit_price_rupiah, stock_quantity, is_active
