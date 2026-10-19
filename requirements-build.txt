@@ -6,3 +6,4 @@ Pillow==10.4.0
 # Local spreadsheet and PDF exports.
 openpyxl==3.1.5
 reportlab==4.2.5
+python-barcode==0.15.1
