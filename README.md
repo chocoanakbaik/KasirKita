@@ -38,6 +38,7 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 ## Fitur yang Sudah Diimplementasikan
 
 - UI desktop dengan tab Kasir, Produk, Riwayat Transaksi, Laporan, dan Pengaturan.
+- Tutorial interaktif offline pada penggunaan pertama, statusnya tersimpan di SQLite lokal, dapat dilewati, dan bisa dibuka ulang melalui tombol Panduan / Tutorial.
 - Katalog produk: tambah, cari, edit detail, dan aktifkan/nonaktifkan produk.
 - Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan stok.
 - Transaksi tunai dengan validasi uang diterima dan kembalian, snapshot nama/harga produk, dan pengurangan stok atomik.
@@ -46,6 +47,7 @@ Database lokal disimpan di folder data pengguna, bukan di samping source atau ex
 - Ringkasan penjualan berdasarkan tanggal lokal komputer, dengan ekspor laporan CSV UTF-8 yang ramah Excel.
 - Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
 - Database lokal SQLite dan log aplikasi lokal.
+- Status tutorial dan preferensi onboarding tersimpan secara lokal; tidak menggunakan akun atau server.
 - Konfigurasi build portable Windows berbasis PyInstaller dan workflow GitHub Actions untuk menghasilkan artefak ZIP serta checksum SHA-256.
 - Pemberitahuan bahwa aplikasi dapat melakukan kesalahan, dengan tautan bantuan yang membuka platform Choco AI di browser bawaan. Logo merek ditampilkan bila Pillow tersedia; aplikasi tetap berjalan tanpa Pillow.
 
