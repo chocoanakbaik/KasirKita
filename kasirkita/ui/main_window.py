@@ -686,6 +686,7 @@ class MainWindow:
         ttk.Label(toolbar, text="Katalog produk", style="Subheader.TLabel").pack(side="left")
         ttk.Button(toolbar, text="Tambah produk", command=self.add_product).pack(side="right")
         ttk.Button(toolbar, text="Ekspor katalog CSV", command=self.export_products_csv).pack(side="right", padx=8)
+        ttk.Button(toolbar, text="Buat label barcode SVG", command=self.export_selected_barcode_svg).pack(side="right", padx=8)
         ttk.Button(toolbar, text="Aktifkan / nonaktifkan", command=self.toggle_selected_product).pack(
             side="right", padx=8
         )
@@ -1465,6 +1466,47 @@ class MainWindow:
         except Exception:
             logger.exception("Failed to create product")
             messagebox.showerror("Kesalahan", "Produk gagal disimpan.", parent=self.root)
+
+    def export_selected_barcode_svg(self) -> None:
+        """Save a printable vector barcode for the selected product SKU."""
+        product = self._selected_product()
+        if product is None:
+            return
+        destination = filedialog.asksaveasfilename(
+            parent=self.root, title="Simpan label barcode SVG",
+            defaultextension=".svg",
+            initialfile=str(product["sku"]).replace("/", "-") + "-barcode.svg",
+            filetypes=[("Barcode SVG", "*.svg"), ("Semua file", "*.*")],
+        )
+        if not destination:
+            return
+        try:
+            import barcode
+            from barcode.writer import SVGWriter
+            code = barcode.get("code128", product["sku"], writer=SVGWriter())
+            target = Path(destination).expanduser()
+            target.parent.mkdir(parents=True, exist_ok=True)
+            generated = code.render(writer_options={
+                "module_width": 0.25, "module_height": 15.0,
+                "quiet_zone": 3.0, "font_size": 10, "text_distance": 3.0,
+                "write_text": True,
+            })
+            target.write_bytes(generated)
+            messagebox.showinfo(
+                "Label barcode disimpan",
+                "Barcode Code 128 untuk SKU " + str(product["sku"]) +
+                " berhasil disimpan sebagai SVG. File dapat dicetak atau dibuka di editor vektor.",
+                parent=self.root,
+            )
+        except ImportError:
+            messagebox.showerror(
+                "Dependensi tidak tersedia",
+                "Pembuatan barcode memerlukan paket python-barcode dari build KasirKita.",
+                parent=self.root,
+            )
+        except Exception:
+            logger.exception("Barcode SVG export failed")
+            messagebox.showerror("Label gagal dibuat", "Label barcode tidak dapat disimpan.", parent=self.root)
 
     def next_internal_code(self) -> str:
         """Return the first unused store-local SKU code."""
