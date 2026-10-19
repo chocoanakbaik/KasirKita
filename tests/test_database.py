@@ -20,7 +20,7 @@ class DatabaseFoundationTests(unittest.TestCase):
 
     def test_schema_version_is_initialized(self):
         version = self.connection.execute("PRAGMA user_version").fetchone()[0]
-        self.assertEqual(version, 1)
+        self.assertEqual(version, 2)
 
     def test_foreign_keys_are_enabled(self):
         enabled = self.connection.execute("PRAGMA foreign_keys").fetchone()[0]
@@ -78,6 +78,60 @@ class DatabaseFoundationTests(unittest.TestCase):
         self.connection.execute("PRAGMA user_version = 999")
         with self.assertRaises(DatabaseError):
             initialize_database(self.connection)
+
+    def test_v1_database_migrates_and_preserves_historical_sales(self):
+        legacy = connect_database(":memory:")
+        try:
+            legacy.executescript(
+                """
+                CREATE TABLE sales (
+                    id INTEGER PRIMARY KEY,
+                    receipt_number TEXT NOT NULL UNIQUE,
+                    status TEXT NOT NULL,
+                    subtotal_rupiah INTEGER NOT NULL,
+                    tax_rupiah INTEGER NOT NULL DEFAULT 0,
+                    total_rupiah INTEGER NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                INSERT INTO sales
+                    (receipt_number, status, subtotal_rupiah, tax_rupiah, total_rupiah, created_at)
+                VALUES ('OLD-RECEIPT', 'completed', 5000, 0, 5000, '2026-01-01T00:00:00.000Z');
+                PRAGMA user_version = 1;
+                """
+            )
+            initialize_database(legacy)
+            version = legacy.execute("PRAGMA user_version").fetchone()[0]
+            self.assertEqual(version, 2)
+            row = legacy.execute(
+                """
+                SELECT receipt_number, total_rupiah, tax_enabled,
+                       tax_rate_basis_points, tax_mode, tax_label
+                FROM sales WHERE receipt_number = 'OLD-RECEIPT'
+                """
+            ).fetchone()
+            self.assertEqual(tuple(row), ("OLD-RECEIPT", 5000, 0, 0, "exclusive", "PPN"))
+        finally:
+            legacy.close()
+
+    def test_failed_migration_keeps_old_schema_version(self):
+        legacy = connect_database(":memory:")
+        try:
+            legacy.executescript(
+                """
+                CREATE TABLE sales (
+                    id INTEGER PRIMARY KEY,
+                    tax_enabled INTEGER NOT NULL DEFAULT 0
+                );
+                PRAGMA user_version = 1;
+                """
+            )
+            with self.assertRaises(DatabaseError):
+                initialize_database(legacy)
+            self.assertEqual(
+                legacy.execute("PRAGMA user_version").fetchone()[0], 1
+            )
+        finally:
+            legacy.close()
 
     def test_initialization_is_idempotent(self):
         self.connection.execute(
