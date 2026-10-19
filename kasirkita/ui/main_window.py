@@ -13,6 +13,7 @@ from kasirkita.infrastructure.product_repository import (
 )
 from kasirkita.services.checkout import CheckoutError, CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog, ProductValidationError
+from kasirkita.services.sales_history import SalesHistoryService, SalesHistoryValidationError
 
 logger = logging.getLogger("kasirkita.ui")
 
@@ -110,12 +111,20 @@ class ProductDialog(tk.Toplevel):
 class MainWindow:
     """Own the desktop widgets and connect them to application services."""
 
-    def __init__(self, root: tk.Tk, catalog: ProductCatalog, checkout: CheckoutService) -> None:
+    def __init__(
+        self,
+        root: tk.Tk,
+        catalog: ProductCatalog,
+        checkout: CheckoutService,
+        sales_history: SalesHistoryService,
+    ) -> None:
         self.root = root
         self.catalog = catalog
         self.checkout_service = checkout
+        self.sales_history = sales_history
         self.cart: Dict[int, int] = {}
         self._product_rows: Dict[int, dict] = {}
+        self._sales_rows: Dict[int, dict] = {}
 
         self.root.title("KasirKita Desktop")
         self.root.geometry("1120x720")
@@ -125,6 +134,7 @@ class MainWindow:
         self.refresh_products()
         self.refresh_cashier_products()
         self.refresh_cart()
+        self.refresh_sales()
 
     def _configure_style(self) -> None:
         style = ttk.Style(self.root)
@@ -152,10 +162,13 @@ class MainWindow:
         self.tabs.pack(fill="both", expand=True)
         self.cashier_tab = ttk.Frame(self.tabs, padding=12)
         self.products_tab = ttk.Frame(self.tabs, padding=12)
+        self.history_tab = ttk.Frame(self.tabs, padding=12)
         self.tabs.add(self.cashier_tab, text="Kasir")
         self.tabs.add(self.products_tab, text="Produk")
+        self.tabs.add(self.history_tab, text="Riwayat transaksi")
         self._build_cashier_tab()
         self._build_products_tab()
+        self._build_history_tab()
 
     def _build_cashier_tab(self) -> None:
         self.cashier_tab.columnconfigure(0, weight=3)
@@ -314,6 +327,155 @@ class MainWindow:
         scroll.grid(row=2, column=1, sticky="ns")
         self.product_tree.configure(yscrollcommand=scroll.set)
 
+    def _build_history_tab(self) -> None:
+        self.history_tab.rowconfigure(1, weight=1)
+        self.history_tab.columnconfigure(0, weight=1)
+        toolbar = ttk.Frame(self.history_tab)
+        toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        toolbar.columnconfigure(1, weight=1)
+        ttk.Label(toolbar, text="Riwayat transaksi", style="Subheader.TLabel").grid(
+            row=0, column=0, sticky="w", padx=(0, 12)
+        )
+        self.history_search = tk.StringVar()
+        search_entry = ttk.Entry(toolbar, textvariable=self.history_search)
+        search_entry.grid(row=0, column=1, sticky="ew")
+        search_entry.bind("<Return>", lambda _event: self.refresh_sales())
+        ttk.Button(toolbar, text="Muat ulang", command=self.refresh_sales).grid(
+            row=0, column=2, padx=(6, 0)
+        )
+        ttk.Button(toolbar, text="Lihat detail", command=self.view_selected_sale).grid(
+            row=0, column=3, padx=(6, 0)
+        )
+
+        self.sales_tree = ttk.Treeview(
+            self.history_tab,
+            columns=("receipt", "date", "status", "total"),
+            show="headings",
+            selectmode="browse",
+        )
+        for key, label, width in [
+            ("receipt", "Nomor struk", 240),
+            ("date", "Waktu (UTC)", 230),
+            ("status", "Status", 120),
+            ("total", "Total", 150),
+        ]:
+            self.sales_tree.heading(key, text=label)
+            self.sales_tree.column(key, width=width, anchor="w")
+        self.sales_tree.grid(row=1, column=0, sticky="nsew")
+        scroll = ttk.Scrollbar(self.history_tab, orient="vertical", command=self.sales_tree.yview)
+        scroll.grid(row=1, column=1, sticky="ns")
+        self.sales_tree.configure(yscrollcommand=scroll.set)
+        self.sales_tree.bind("<Double-1>", lambda _event: self.view_selected_sale())
+
+    def refresh_sales(self) -> None:
+        try:
+            sales = self.sales_history.list_sales(
+                search=self.history_search.get(), limit=500, offset=0
+            )
+            self._sales_rows = {item["id"]: item for item in sales}
+            self.sales_tree.delete(*self.sales_tree.get_children())
+            for sale in sales:
+                self.sales_tree.insert(
+                    "",
+                    "end",
+                    iid=str(sale["id"]),
+                    values=(
+                        sale["receipt_number"],
+                        sale["created_at"],
+                        "Selesai" if sale["status"] == "completed" else "Dibatalkan",
+                        format_rupiah(sale["total_rupiah"]),
+                    ),
+                )
+        except Exception:
+            logger.exception("Failed to refresh sales history")
+            messagebox.showerror("Kesalahan", "Riwayat transaksi gagal dimuat.", parent=self.root)
+
+    def view_selected_sale(self) -> None:
+        selection = self.sales_tree.selection()
+        if not selection:
+            messagebox.showinfo("Pilih transaksi", "Pilih transaksi terlebih dahulu.", parent=self.root)
+            return
+        try:
+            sale = self.sales_history.get_sale_detail(int(selection[0]))
+            if sale is None:
+                messagebox.showerror(
+                    "Transaksi tidak ditemukan",
+                    "Transaksi tidak ditemukan. Muat ulang riwayat transaksi.",
+                    parent=self.root,
+                )
+                self.refresh_sales()
+                return
+        except SalesHistoryValidationError as exc:
+            messagebox.showerror("ID transaksi tidak valid", str(exc), parent=self.root)
+            return
+        except Exception:
+            logger.exception("Failed to load sale detail")
+            messagebox.showerror("Kesalahan", "Detail transaksi gagal dimuat.", parent=self.root)
+            return
+
+        window = tk.Toplevel(self.root)
+        window.title("Detail " + sale["receipt_number"])
+        window.geometry("760x460")
+        window.minsize(620, 360)
+        window.transient(self.root)
+        frame = ttk.Frame(window, padding=16)
+        frame.pack(fill="both", expand=True)
+        ttk.Label(frame, text=sale["receipt_number"], style="Header.TLabel").pack(anchor="w")
+        ttk.Label(
+            frame,
+            text="Waktu UTC: " + sale["created_at"] + "   •   Status: " + sale["status"],
+        ).pack(anchor="w", pady=(4, 12))
+        table_frame = ttk.Frame(frame)
+        table_frame.pack(fill="both", expand=True)
+        table_frame.rowconfigure(0, weight=1)
+        table_frame.columnconfigure(0, weight=1)
+        lines = ttk.Treeview(
+            table_frame,
+            columns=("sku", "name", "qty", "price", "subtotal"),
+            show="headings",
+        )
+        for key, label, width in [
+            ("sku", "SKU", 90),
+            ("name", "Produk", 210),
+            ("qty", "Qty", 50),
+            ("price", "Harga", 110),
+            ("subtotal", "Subtotal", 120),
+        ]:
+            lines.heading(key, text=label)
+            lines.column(key, width=width, anchor="w")
+        lines.grid(row=0, column=0, sticky="nsew")
+        line_scroll = ttk.Scrollbar(table_frame, orient="vertical", command=lines.yview)
+        line_scroll.grid(row=0, column=1, sticky="ns")
+        lines.configure(yscrollcommand=line_scroll.set)
+        for line in sale["items"]:
+            lines.insert(
+                "",
+                "end",
+                values=(
+                    line["sku"],
+                    line["name"],
+                    line["quantity"],
+                    format_rupiah(line["unit_price_rupiah"]),
+                    format_rupiah(line["line_total_rupiah"]),
+                ),
+            )
+
+        payment_text = ", ".join(
+            payment["method"] + ": " + format_rupiah(payment["amount_rupiah"])
+            for payment in sale["payments"]
+        ) or "Tidak ada catatan pembayaran (total transaksi Rp 0)."
+        ttk.Label(frame, text="Pembayaran: " + payment_text, wraplength=700).pack(
+            anchor="w", pady=(10, 4)
+        )
+        ttk.Label(
+            frame,
+            text="Subtotal: " + format_rupiah(sale["subtotal_rupiah"])
+            + "  |  Pajak: " + format_rupiah(sale["tax_rupiah"])
+            + "  |  Total: " + format_rupiah(sale["total_rupiah"]),
+            font=("Segoe UI", 11, "bold"),
+        ).pack(anchor="e", pady=(2, 0))
+        ttk.Button(frame, text="Tutup", command=window.destroy).pack(anchor="e", pady=(10, 0))
+
     def refresh_products(self) -> None:
         try:
             products = self.catalog.list_products(
@@ -372,6 +534,7 @@ class MainWindow:
             )
             self.refresh_products()
             self.refresh_cashier_products()
+            self.refresh_sales()
         except (ProductValidationError, DuplicateSKUError) as exc:
             messagebox.showerror("Produk tidak dapat disimpan", str(exc), parent=self.root)
         except Exception:
@@ -530,6 +693,7 @@ class MainWindow:
             self.refresh_cart()
             self.refresh_products()
             self.refresh_cashier_products()
+            self.refresh_sales()
         except CheckoutError as exc:
             messagebox.showerror("Transaksi tidak dapat diproses", str(exc), parent=self.root)
         except Exception:
