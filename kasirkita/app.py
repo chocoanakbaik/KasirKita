@@ -8,6 +8,7 @@ import sys
 import tkinter as tk
 from tkinter import messagebox
 
+from kasirkita.infrastructure.backup import DatabaseBackupService
 from kasirkita.infrastructure.database import DatabaseError, connect_database, initialize_database
 from kasirkita.infrastructure.product_repository import ProductRepository
 from kasirkita.services.checkout import CheckoutService
@@ -42,7 +43,8 @@ def main() -> int:
             level=logging.INFO,
             format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         )
-        connection = connect_database(data_directory / "kasirkita.sqlite3")
+        database_path = data_directory / "kasirkita.sqlite3"
+        connection = connect_database(database_path)
         initialize_database(connection)
     except (OSError, DatabaseError) as exc:
         logging.exception("KasirKita startup failed")
@@ -62,7 +64,8 @@ def main() -> int:
         catalog = ProductCatalog(ProductRepository(connection))
         checkout = CheckoutService(connection)
         sales_history = SalesHistoryService(connection)
-        MainWindow(root, catalog, checkout, sales_history)
+        backup_service = DatabaseBackupService(connection, str(database_path))
+        MainWindow(root, catalog, checkout, sales_history, backup_service)
         root.mainloop()
         return 0
     except Exception:
