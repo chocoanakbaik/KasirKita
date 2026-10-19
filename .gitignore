@@ -1,0 +1,23 @@
+# Python bytecode and test artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local application data and logs
+*.sqlite3
+*.sqlite3-journal
+*.db
+logs/
+kasirkita.log
+
+# Build and packaging outputs
+build/
+dist/
+*.spec
