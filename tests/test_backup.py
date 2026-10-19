@@ -1,4 +1,5 @@
 """Tests for backup creation, restore validation, and data preservation."""
+from contextlib import closing
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -35,7 +36,7 @@ class DatabaseBackupTests(unittest.TestCase):
     def test_create_backup_produces_valid_database(self):
         path = self.backups.create_backup(str(self.directory / "backup.sqlite3"))
         self.assertTrue(path.is_file())
-        with sqlite3.connect(str(path)) as connection:
+        with closing(sqlite3.connect(str(path))) as connection:
             self.assertEqual(connection.execute("PRAGMA integrity_check").fetchone()[0], "ok")
             self.assertEqual(
                 connection.execute("SELECT name FROM products WHERE sku = 'BASE'").fetchone()[0],
@@ -53,7 +54,7 @@ class DatabaseBackupTests(unittest.TestCase):
 
     def test_invalid_backup_is_rejected_without_changing_live_data(self):
         invalid_path = self.directory / "invalid.sqlite3"
-        with sqlite3.connect(str(invalid_path)) as connection:
+        with closing(sqlite3.connect(str(invalid_path))) as connection:
             connection.execute("CREATE TABLE not_kasirkita (value TEXT)")
             connection.execute("PRAGMA user_version = 1")
         with self.assertRaises(BackupError):
