@@ -1,0 +1,155 @@
+"""Validated SQLite backup and restore operations."""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+import sqlite3
+import tempfile
+from typing import Optional
+
+from kasirkita.infrastructure.database import DatabaseError, SCHEMA_VERSION
+
+
+class BackupError(RuntimeError):
+    """Raised when a backup or restore cannot be completed safely."""
+
+
+_REQUIRED_TABLES = {
+    "products",
+    "sales",
+    "sale_items",
+    "payments",
+    "stock_movements",
+    "app_settings",
+}
+
+
+def _open_existing_database(path: Path) -> sqlite3.Connection:
+    if not path.is_file():
+        raise BackupError("File database tidak ditemukan.")
+    try:
+        connection = sqlite3.connect(str(path), timeout=5.0)
+        connection.execute("PRAGMA foreign_keys = ON")
+        return connection
+    except sqlite3.Error as exc:
+        raise BackupError("File database tidak dapat dibuka.") from exc
+
+
+def _validate_connection(connection: sqlite3.Connection) -> None:
+    try:
+        integrity = connection.execute("PRAGMA integrity_check").fetchone()
+        if integrity is None or integrity[0] != "ok":
+            raise BackupError("Pemeriksaan integritas database gagal.")
+        foreign_key_errors = connection.execute("PRAGMA foreign_key_check").fetchall()
+        if foreign_key_errors:
+            raise BackupError("Database memiliki relasi foreign key yang tidak valid.")
+
+        version = int(connection.execute("PRAGMA user_version").fetchone()[0])
+        if version != SCHEMA_VERSION:
+            raise BackupError(
+                "Versi skema backup tidak didukung. "
+                "Diperlukan versi " + str(SCHEMA_VERSION) + "."
+            )
+        names = {
+            str(row[0])
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            ).fetchall()
+        }
+        if not _REQUIRED_TABLES.issubset(names):
+            raise BackupError("Backup tidak berisi semua tabel inti KasirKita.")
+    except BackupError:
+        raise
+    except sqlite3.Error as exc:
+        raise BackupError("Database tidak dapat divalidasi.") from exc
+
+
+def _temporary_database_path(directory: Path, prefix: str) -> Path:
+    directory.mkdir(parents=True, exist_ok=True)
+    descriptor, name = tempfile.mkstemp(prefix=prefix, suffix=".sqlite3", dir=str(directory))
+    os.close(descriptor)
+    return Path(name)
+
+
+class DatabaseBackupService:
+    """Create consistent backups and restore only validated KasirKita databases.
+
+    The caller owns the live connection. Restore uses SQLite's backup API, so the
+    existing connection object remains valid after a successful restore.
+    """
+
+    def __init__(self, live_connection: sqlite3.Connection) -> None:
+        self._live_connection = live_connection
+
+    def create_backup(self, destination: str) -> Path:
+        target = Path(destination).expanduser()
+        if not target.name:
+            raise BackupError("Lokasi backup tidak valid.")
+        if self._live_connection.in_transaction:
+            raise BackupError("Backup tidak dapat dibuat saat transaksi database aktif.")
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temporary = _temporary_database_path(target.parent, ".kasirkita-backup-")
+        try:
+            with sqlite3.connect(str(temporary), timeout=5.0) as backup_connection:
+                self._live_connection.backup(backup_connection)
+                _validate_connection(backup_connection)
+            os.replace(str(temporary), str(target))
+            return target
+        except BackupError:
+            raise
+        except (OSError, sqlite3.Error) as exc:
+            raise BackupError("Backup gagal dibuat; file tujuan tidak diganti.") from exc
+        finally:
+            try:
+                if temporary.exists():
+                    temporary.unlink()
+            except OSError:
+                # Cleanup failure does not invalidate a successfully replaced backup.
+                pass
+
+    def restore_backup(self, source: str) -> None:
+        source_path = Path(source).expanduser()
+        if not source_path.is_file():
+            raise BackupError("File backup tidak ditemukan.")
+        if self._live_connection.in_transaction:
+            raise BackupError("Restore tidak dapat dilakukan saat transaksi database aktif.")
+
+        temporary = _temporary_database_path(source_path.parent, ".kasirkita-safety-")
+        try:
+            with _open_existing_database(source_path) as source_connection:
+                _validate_connection(source_connection)
+                with sqlite3.connect(str(temporary), timeout=5.0) as safety_connection:
+                    self._live_connection.backup(safety_connection)
+                    _validate_connection(safety_connection)
+
+                try:
+                    source_connection.backup(self._live_connection)
+                    _validate_connection(self._live_connection)
+                except Exception as restore_error:
+                    # Best-effort rollback at database-image level if post-restore
+                    # validation fails. The safety image was validated beforehand.
+                    try:
+                        with sqlite3.connect(str(temporary), timeout=5.0) as safety_connection:
+                            safety_connection.backup(self._live_connection)
+                    except Exception as recovery_error:
+                        raise BackupError(
+                            "Restore gagal dan pemulihan otomatis juga gagal. "
+                            "Jangan tutup aplikasi; segera salin file database yang ada."
+                        ) from recovery_error
+                    raise BackupError(
+                        "Restore gagal. Database sebelumnya telah dipulihkan."
+                    ) from restore_error
+        except BackupError:
+            raise
+        except (OSError, sqlite3.Error, DatabaseError) as exc:
+            raise BackupError("Restore tidak dapat diselesaikan dengan aman.") from exc
+        finally:
+            try:
+                if temporary.exists():
+                    temporary.unlink()
+            except OSError:
+                pass
+
+
+__all__ = ["BackupError", "DatabaseBackupService"]
