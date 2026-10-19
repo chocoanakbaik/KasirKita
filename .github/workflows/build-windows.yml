@@ -3,6 +3,7 @@ name: Build Windows desktop package
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     tags:
       - "v*"
 
