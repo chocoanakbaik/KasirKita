@@ -176,6 +176,17 @@ class CheckoutTests(unittest.TestCase):
             self.connection.execute("SELECT COUNT(*) FROM payments").fetchone()[0], 0
         )
 
+    def test_zero_total_sale_returns_any_cash_received_as_change(self):
+        self.connection.execute(
+            "UPDATE products SET unit_price_rupiah = 0 WHERE id = ?", (self.teh_id,)
+        )
+        result = self.checkout_service.checkout(
+            [{"product_id": self.teh_id, "quantity": 1}],
+            amount_received_rupiah=1000,
+        )
+        self.assertEqual(result["total_rupiah"], 0)
+        self.assertEqual(result["change_rupiah"], 1000)
+
 
 if __name__ == "__main__":
     unittest.main()
