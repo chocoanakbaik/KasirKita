@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import tkinter as tk
 from tkinter import messagebox, ttk
 from typing import Dict, Optional
@@ -27,10 +28,10 @@ def parse_rupiah_input(value: str) -> int:
     """Parse whole rupiah input; accepts digits with optional dot group separators."""
     if not isinstance(value, str):
         raise ValueError("Masukkan nominal dalam angka rupiah.")
-    cleaned = value.strip().replace(".", "")
-    if not cleaned or not cleaned.isdigit():
+    cleaned = value.strip()
+    if not re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:\\.[0-9]{3})+)", cleaned):
         raise ValueError("Nominal harus berupa angka bulat. Contoh: 25000 atau 25.000.")
-    amount = int(cleaned)
+    amount = int(cleaned.replace(".", ""))
     if amount > 9_000_000_000_000_000:
         raise ValueError("Nominal melebihi batas yang didukung.")
     return amount
@@ -92,13 +93,12 @@ class ProductDialog(tk.Toplevel):
         name = self._entries["name"].get()
         try:
             price = parse_rupiah_input(self._entries["price"].get())
-            stock = (
-                int(self._entries["stock"].get().strip())
-                if "stock" in self._entries
-                else None
-            )
-            if stock is not None and (stock < 0 or str(stock) != self._entries["stock"].get().strip()):
+            stock_text = self._entries["stock"].get().strip() if "stock" in self._entries else None
+            if stock_text is not None and not stock_text.isdigit():
                 raise ValueError("Stok awal harus berupa bilangan bulat nol atau lebih.")
+            stock = int(stock_text) if stock_text is not None else None
+            if stock is not None and stock > 2_147_483_647:
+                raise ValueError("Stok awal melebihi batas yang didukung.")
         except (ValueError, OverflowError) as exc:
             messagebox.showerror("Input tidak valid", str(exc), parent=self)
             return
@@ -270,7 +270,7 @@ class MainWindow:
         ).pack(anchor="w")
 
     def _build_products_tab(self) -> None:
-        self.products_tab.rowconfigure(1, weight=1)
+        self.products_tab.rowconfigure(2, weight=1)
         self.products_tab.columnconfigure(0, weight=1)
         toolbar = ttk.Frame(self.products_tab)
         toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
@@ -285,7 +285,7 @@ class MainWindow:
 
         self.product_search = tk.StringVar()
         search = ttk.Frame(self.products_tab)
-        search.grid(row=0, column=0, sticky="ew", pady=(36, 10))
+        search.grid(row=1, column=0, sticky="ew", pady=(0, 10))
         search.columnconfigure(0, weight=1)
         entry = ttk.Entry(search, textvariable=self.product_search)
         entry.grid(row=0, column=0, sticky="ew")
@@ -309,9 +309,9 @@ class MainWindow:
         ]:
             self.product_tree.heading(key, text=label)
             self.product_tree.column(key, width=width, anchor="w")
-        self.product_tree.grid(row=1, column=0, sticky="nsew")
+        self.product_tree.grid(row=2, column=0, sticky="nsew")
         scroll = ttk.Scrollbar(self.products_tab, orient="vertical", command=self.product_tree.yview)
-        scroll.grid(row=1, column=1, sticky="ns")
+        scroll.grid(row=2, column=1, sticky="ns")
         self.product_tree.configure(yscrollcommand=scroll.set)
 
     def refresh_products(self) -> None:
