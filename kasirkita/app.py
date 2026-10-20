@@ -97,7 +97,7 @@ def main() -> int:
             )
             attach_post_login_features(
                 main_window,
-                root, contacts, accounts, session, logout,
+                root, contacts, accounts, session, logout, connection,
             )
             configure_window_for_device(root, device)
             root.deiconify()
