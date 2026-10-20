@@ -4,11 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore:
+      - "installer-release/**"
     tags:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-windows:
@@ -81,6 +83,29 @@ jobs:
           Get-FileHash KasirKita-Setup.exe -Algorithm SHA256 |
             ForEach-Object { "$($_.Hash)  KasirKita-Setup.exe" } |
             Set-Content -Encoding ASCII KasirKita-Setup.sha256
+
+      - name: Publish installer into the main-branch ZIP
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $installer = Resolve-Path "KasirKita-Setup.exe"
+          $releaseDir = "installer-release"
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+          Copy-Item $installer "$releaseDir/KasirKita-Setup.exe" -Force
+          Get-FileHash "$releaseDir/KasirKita-Setup.exe" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash)  KasirKita-Setup.exe" } |
+            Set-Content -Encoding ASCII "$releaseDir/KasirKita-Setup.sha256"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$releaseDir/KasirKita-Setup.exe" "$releaseDir/KasirKita-Setup.sha256"
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "Publish Windows installer [skip ci]"
+            git push origin HEAD:main
+          } else {
+            Write-Host "Published installer is already up to date."
+          }
 
       - name: Upload portable package and installer
         uses: actions/upload-artifact@v4
