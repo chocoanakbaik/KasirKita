@@ -22,7 +22,6 @@ class DeviceDetectionTests(unittest.TestCase):
         root = Mock()
         root.winfo_screenwidth.return_value = 1024
         root.winfo_screenheight.return_value = 600
-        root.tk.call.side_effect = [1.0, None]
         info = configure_window_for_device(root, {
             "profile": "hemat", "cpu_count": 2, "memory_gb": 4.0
         })
