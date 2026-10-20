@@ -33,11 +33,14 @@ jobs:
         run: python -m compileall -q kasirkita tests
       - name: Run automated tests
         run: python -m unittest discover -v
-      - name: Create Windows application icon
+      - name: Generate KasirKita brand assets
+        run: python scripts/generate_brand_assets.py
+      - name: Verify generated application branding
         shell: pwsh
         run: |
-          python -c "from PIL import Image; im=Image.open('assets/brand/Gemini_Generated_Image_nc8u80nc8u80nc8u.jpg').convert('RGBA'); im.save('assets/icons/kasirkita.ico', format='ICO', sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
-          if (-not (Test-Path "assets/icons/kasirkita.ico")) { throw "Application icon was not created." }
+          foreach ($path in @("assets/icons/kasirkita.ico", "assets/brand/kasirkita-logo.png")) {
+            if (-not (Test-Path $path)) { throw "Required brand asset was not generated: $path" }
+          }
       - name: Build directory-based Windows application
         run: pyinstaller --clean --noconfirm kasirkita.spec
       - name: Create portable package and checksum
