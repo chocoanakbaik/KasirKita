@@ -5,6 +5,7 @@ from tkinter import messagebox, simpledialog, ttk
 from kasirkita.services.accounts import AccountService
 from kasirkita.services.contacts import ContactService
 from kasirkita.services.operations import OperationError
+from kasirkita.infrastructure.environment import detect_device
 from kasirkita.ui.contacts_panel import ContactsPanel
 from kasirkita.ui.employee_management import EmployeeManagementDialog
 from kasirkita.ui.operations_panel import OperationsPanel
@@ -53,6 +54,28 @@ def attach_post_login_features(main_window, root, contacts, accounts, session, o
     operations_tab = ttk.Frame(main_window.tabs, padding=8)
     main_window.tabs.add(operations_tab, text="Operasional")
     OperationsPanel(operations_tab, connection).pack(fill="both", expand=True)
+
+    device_tab = ttk.Frame(main_window.tabs, padding=20)
+    main_window.tabs.add(device_tab, text="Perangkat")
+    device = detect_device()
+    screen = "{} × {}".format(root.winfo_screenwidth(), root.winfo_screenheight())
+    memory = "{} GB".format(device["memory_gb"]) if device.get("memory_gb") is not None else "Tidak terdeteksi"
+    details = (
+        ("Sistem operasi", "{} ({})".format(device["os_name"], device["os_version"])),
+        ("Arsitektur perangkat", str(device["architecture"])),
+        ("Arsitektur proses aplikasi", str(device["process_bits"]) + "-bit"),
+        ("Prosesor logis", str(device["cpu_count"])),
+        ("RAM terpasang", memory),
+        ("Resolusi layar", screen),
+        ("Profil aplikasi", "Hemat sumber daya" if device["profile"] == "hemat" else "Standar"),
+    )
+    ttk.Label(device_tab, text="Deteksi perangkat otomatis", font=("Segoe UI", 15, "bold")).pack(anchor="w", pady=(0, 12))
+    ttk.Label(device_tab, text="KasirKita membaca spesifikasi dasar saat dijalankan dan menyesuaikan ukuran jendela. Data ini hanya ditampilkan lokal.", wraplength=650).pack(anchor="w", pady=(0, 14))
+    for label, value in details:
+        row = ttk.Frame(device_tab)
+        row.pack(fill="x", pady=4)
+        ttk.Label(row, text=label, width=28).pack(side="left")
+        ttk.Label(row, text=value).pack(side="left")
 
     proxy = DiscountCheckoutProxy(main_window.checkout_service)
     main_window.checkout_service = proxy
