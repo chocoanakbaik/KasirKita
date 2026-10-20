@@ -20,7 +20,7 @@ class DatabaseFoundationTests(unittest.TestCase):
 
     def test_schema_version_is_initialized(self):
         version = self.connection.execute("PRAGMA user_version").fetchone()[0]
-        self.assertEqual(version, 2)
+        self.assertEqual(version, 3)
 
     def test_foreign_keys_are_enabled(self):
         enabled = self.connection.execute("PRAGMA foreign_keys").fetchone()[0]
@@ -101,7 +101,7 @@ class DatabaseFoundationTests(unittest.TestCase):
             )
             initialize_database(legacy)
             version = legacy.execute("PRAGMA user_version").fetchone()[0]
-            self.assertEqual(version, 2)
+            self.assertEqual(version, 3)
             row = legacy.execute(
                 """
                 SELECT receipt_number, total_rupiah, tax_enabled,
