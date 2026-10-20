@@ -26,7 +26,6 @@ class OperationsServiceTests(unittest.TestCase):
         costs.set_cost(self.product_id, 6500)
         self.assertEqual(costs.list_products()[0]["unit_cost_rupiah"], 6500)
         costs.set_cost(self.product_id, 6000)
-        costs.adjust = None
         self.connection.execute("UPDATE products SET stock_quantity = 2 WHERE id = ?", (self.product_id,))
         self.assertEqual(costs.low_stock(2)[0]["stock_quantity"], 2)
 
