@@ -112,7 +112,7 @@ class DatabaseFoundationTests(unittest.TestCase):
             )
             initialize_database(legacy)
             version = legacy.execute("PRAGMA user_version").fetchone()[0]
-            self.assertEqual(version, 3)
+            self.assertEqual(version, 4)
             row = legacy.execute(
                 """
                 SELECT receipt_number, total_rupiah, tax_enabled,
