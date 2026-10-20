@@ -152,8 +152,8 @@ class CheckoutService:
                     """
                     INSERT INTO sale_items (
                         sale_id, product_id, sku_snapshot, product_name_snapshot,
-                        quantity, unit_price_rupiah, line_total_rupiah
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        quantity, unit_price_rupiah, line_total_rupiah, unit_cost_rupiah
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         sale_id,
@@ -163,6 +163,7 @@ class CheckoutService:
                         quantity,
                         line["unit_price_rupiah"],
                         line["line_total_rupiah"],
+                        line["unit_cost_rupiah"],
                     ),
                 )
                 self._connection.execute(
@@ -211,7 +212,7 @@ class CheckoutService:
         for product_id, quantity in normalized_items:
             row = self._connection.execute(
                 """
-                SELECT id, sku, name, unit_price_rupiah, stock_quantity, is_active
+                SELECT id, sku, name, unit_price_rupiah, unit_cost_rupiah, stock_quantity, is_active
                 FROM products
                 WHERE id = ?
                 """,
@@ -241,6 +242,7 @@ class CheckoutService:
                     "name": str(row["name"]),
                     "quantity": quantity,
                     "unit_price_rupiah": unit_price,
+                    "unit_cost_rupiah": int(row["unit_cost_rupiah"]),
                     "line_total_rupiah": line_total,
                 }
             )
