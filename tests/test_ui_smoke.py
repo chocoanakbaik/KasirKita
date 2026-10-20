@@ -13,7 +13,10 @@ from kasirkita.services.sales_report import SalesReportService
 from kasirkita.services.stock import StockService
 from kasirkita.services.tax_settings import TaxSettingsService
 from kasirkita.services.onboarding import OnboardingService
+from kasirkita.services.accounts import AccountService
+from kasirkita.services.contacts import ContactService
 from kasirkita.ui.main_window import CHOCO_AI_URL, MainWindow
+from kasirkita.ui.post_login_features import attach_post_login_features
 
 
 @unittest.skipUnless(os.name == "nt" or os.environ.get("DISPLAY"), "A desktop display is required.")
@@ -41,6 +44,15 @@ class DesktopUISmokeTests(unittest.TestCase):
             self.assertEqual(app.support_link.cget("text"), "Klik di sini untuk melaporkan")
             self.assertEqual(CHOCO_AI_URL, "https://choco-ai-platform.netlify.app/")
             self.assertTrue(app.onboarding is not None)
+            attach_post_login_features(
+                app, root, ContactService(connection), AccountService(connection),
+                {"id": 1, "display_name": "Pemilik", "role": "owner"},
+                lambda: None, connection,
+            )
+            self.assertEqual(len(app.tabs.tabs()), 8)
+            self.assertEqual(app.tabs.tab(app.tabs.tabs()[5], "text"), "Pelanggan & Supplier")
+            self.assertEqual(app.tabs.tab(app.tabs.tabs()[6], "text"), "Operasional")
+            self.assertEqual(app.tabs.tab(app.tabs.tabs()[7], "text"), "Perangkat")
             root.update_idletasks()
         finally:
             root.destroy()
