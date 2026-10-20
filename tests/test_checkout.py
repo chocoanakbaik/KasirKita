@@ -234,5 +234,28 @@ class CheckoutTests(unittest.TestCase):
         self.assertEqual(result["change_rupiah"], 1000)
 
 
+    def test_discount_is_applied_and_snapshotted(self):
+        preview = self.checkout_service.preview(
+            [{"product_id": self.teh_id, "quantity": 2}], discount_rupiah=1000
+        )
+        self.assertEqual(preview["gross_amount_rupiah"], 9000)
+        self.assertEqual(preview["discount_rupiah"], 1000)
+        self.assertEqual(preview["total_rupiah"], 8000)
+        result = self.checkout_service.checkout(
+            [{"product_id": self.teh_id, "quantity": 2}], 8000, discount_rupiah=1000
+        )
+        self.assertEqual(result["total_rupiah"], 8000)
+        self.assertEqual(result["discount_rupiah"], 1000)
+        stored = self.connection.execute(
+            "SELECT discount_rupiah FROM sales WHERE id = ?", (result["sale_id"],)
+        ).fetchone()[0]
+        self.assertEqual(stored, 1000)
+
+    def test_discount_cannot_exceed_cart_total(self):
+        with self.assertRaises(InvalidCartError):
+            self.checkout_service.preview([{"product_id": self.teh_id, "quantity": 1}], 4501)
+        with self.assertRaises(InvalidCartError):
+            self.checkout_service.checkout([{"product_id": self.teh_id, "quantity": 1}], 1, discount_rupiah=4501)
+
 if __name__ == "__main__":
     unittest.main()
