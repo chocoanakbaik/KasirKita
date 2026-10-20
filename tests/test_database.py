@@ -20,7 +20,7 @@ class DatabaseFoundationTests(unittest.TestCase):
 
     def test_schema_version_is_initialized(self):
         version = self.connection.execute("PRAGMA user_version").fetchone()[0]
-        self.assertEqual(version, 3)
+        self.assertEqual(version, 4)
 
     def test_foreign_keys_are_enabled(self):
         enabled = self.connection.execute("PRAGMA foreign_keys").fetchone()[0]
