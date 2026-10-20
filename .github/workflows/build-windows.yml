@@ -36,18 +36,22 @@ jobs:
         run: |
           python -c "from PIL import Image; im=Image.open('assets/brand/Gemini_Generated_Image_nc8u80nc8u80nc8u.jpg').convert('RGBA'); im.save('assets/icons/kasirkita.ico', format='ICO', sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
           if (-not (Test-Path "assets/icons/kasirkita.ico")) { throw "Application icon was not created." }
-      - name: Build portable executable
+      - name: Build directory-based Windows application
         run: pyinstaller --clean --noconfirm kasirkita.spec
       - name: Create portable package and checksum
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path package/KasirKita | Out-Null
-          Copy-Item dist/KasirKita.exe package/KasirKita/KasirKita.exe
+          if (-not (Test-Path "dist/KasirKita/KasirKita.exe")) {
+            throw "Expected onedir executable was not created."
+          }
+          Copy-Item -Path "dist/KasirKita/*" -Destination "package/KasirKita" -Recurse -Force
           Copy-Item README.md package/README.md
           Copy-Item docs/PANDUAN_PENGGUNA_ALPHA.md package/PANDUAN_PENGGUNA.md
           @(
             "KasirKita Desktop"
             "Jalankan KasirKita.exe dari folder KasirKita."
+            "Paket portable berisi executable dan file runtime pendamping."
             "Data aplikasi disimpan pada folder data pengguna Windows."
             "Jangan hapus folder data pengguna saat memperbarui aplikasi."
             "Backup data sebelum mengganti versi."
