@@ -41,6 +41,18 @@ Dikembangkan oleh **The Choco Corporation**.
 - Tutorial offline pada penggunaan pertama, dapat dilewati dan dibuka ulang.
 - Log aplikasi lokal untuk membantu diagnosis masalah.
 
+## Ruang lingkup pengembangan berikutnya
+
+Target produk mencakup tiga tahap pengembangan:
+
+1. **Fitur inti:** kasir, katalog produk, stok, riwayat transaksi, laporan dan ekspor, struk, pengaturan toko, serta backup dan restore.
+2. **Operasional toko:** diskon, retur, pengeluaran operasional, perhitungan laba berdasarkan harga modal, dukungan barcode, dan peringatan stok menipis.
+3. **Akun lokal dan data relasi:** jalur login terpisah untuk pemilik dan pegawai, pendaftaran akun pemilik pertama, pengelolaan akun pegawai, serta data pelanggan dan supplier.
+
+Untuk tahap ketiga, login dan pemulihan akun dirancang berjalan lokal tanpa bergantung pada Choco AI atau Supabase. NIK tidak akan diperlakukan sebagai satu-satunya bukti kepemilikan akun. KasirKita tidak akan menyimpan atau mengekspor kata sandi lama dalam bentuk teks maupun ciphertext yang dapat dipulihkan otomatis; pemulihan yang aman harus mengatur ulang kata sandi setelah verifikasi tambahan. Detail persyaratan ada di [spesifikasi autentikasi dan pengelolaan akun](docs/AUTHENTICATION_AND_ACCOUNT_MANAGEMENT.md).
+
+Fitur-fitur dalam roadmap di atas belum boleh dianggap tersedia sebelum diimplementasikan dan diuji.
+
 ## Batasan yang perlu diketahui
 
 - Metode pembayaran yang tersedia pada versi awal adalah tunai.
@@ -82,6 +94,7 @@ GitHub Actions menguji source pada Windows dan Ubuntu dengan Python 3.8 dan 3.12
 ## Dokumentasi pengembangan
 
 - [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
+- [Autentikasi dan Pengelolaan Akun](docs/AUTHENTICATION_AND_ACCOUNT_MANAGEMENT.md)
 - [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
 - [Panduan Pengguna Alpha](docs/PANDUAN_PENGGUNA_ALPHA.md)
 - [Checklist Rilis](docs/RELEASE_CHECKLIST.md)
