@@ -1,8 +1,8 @@
 ; KasirKita Windows installer (Inno Setup 6)
-; Build from the repository root after creating package/KasirKita.
+; Least-privilege installer: installs only for the current Windows user.
 #define MyAppName "KasirKita"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "The Choco Corporation"
+#define MyAppPublisher "Choco Anak Baik"
 #define MyAppExeName "KasirKita.exe"
 
 [Setup]
@@ -10,23 +10,22 @@ AppId={{C8F21E54-8A0C-4B14-A0D4-3F74B5E3A9D1}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\KasirKita
+DefaultDirName={localappdata}\Programs\KasirKita
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputDir=..\
-OutputBaseFilename=KasirKita-Setup
-Compression=lzma2
-SolidCompression=yes
-WizardStyle=modern
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64
 UninstallDisplayIcon={app}\{#MyAppExeName}
 SetupLogging=yes
 CloseApplications=yes
 RestartApplications=no
+OutputDir=..\
+OutputBaseFilename=KasirKita-Setup
+Compression=lzma2
+SolidCompression=yes
+WizardStyle=modern
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
@@ -42,5 +41,5 @@ Source: "..\package\PETUNJUK.txt"; DestDir: "{app}"; Flags: ignoreversion
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
-[Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Jalankan KasirKita"; Flags: postinstall nowait skipifsilent
+; The installer does not auto-launch the application after installation.
+; Users can start it from the Start Menu or optional Desktop shortcut.
