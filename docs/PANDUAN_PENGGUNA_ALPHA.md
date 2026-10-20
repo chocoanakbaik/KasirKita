@@ -11,7 +11,15 @@ Saat aplikasi pertama kali berjalan pada instalasi yang belum memiliki status tu
 3. Jalankan `py -m kasirkita`.
 4. Database dibuat pada direktori data pengguna. Jangan menghapus atau memindahkan file database ketika aplikasi sedang berjalan.
 
-## 2. Menambahkan produk
+## 2. Login pemilik dan pegawai
+
+Pada awal instalasi, pilih **Daftar akun pemilik pertama**. Isi nama, NIK 16 digit, kata sandi minimal 10 karakter, lalu simpan kode pemulihan satu kali di tempat aman di luar komputer. Pendaftaran awal otomatis ditutup setelah akun pemilik dibuat.
+
+Saat aplikasi dibuka berikutnya, pilih jalur **Login sebagai Pemilik** atau **Login sebagai Pegawai**. Jalur tersebut terpisah; akun pemilik tidak dapat masuk lewat formulir pegawai dan sebaliknya. Pemilik dapat membuka **Akun Pegawai** untuk membuat akun pegawai, menonaktifkan akun, dan mengatur ulang kata sandi pegawai.
+
+Pemulihan kata sandi pemilik memerlukan NIK dan kode pemulihan sekali pakai, kemudian menetapkan kata sandi baru. NIK saja tidak cukup. Kode pemulihan disimpan di luar aplikasi dan tidak dapat ditampilkan ulang setelah pendaftaran. Kata sandi lama tidak pernah diekspor.
+
+## 3. Menambahkan produk
 
 Pada tab **Produk**, tombol **Ekspor katalog CSV** menyimpan hasil katalog yang sedang ditampilkan (termasuk filter pencarian aktif) ke CSV dengan pemisah titik koma dan encoding UTF-8 BOM agar lebih mudah dibuka di aplikasi spreadsheet.
 
@@ -24,13 +32,13 @@ Pada tab **Produk**, tombol **Ekspor katalog CSV** menyimpan hasil katalog yang 
 
 Produk yang sudah dipakai dalam transaksi tidak dihapus dari histori. Gunakan status nonaktif agar produk tidak dapat dipilih untuk transaksi baru.
 
-## 3. Input kode pada kasir (uji barcode keyboard)
+## 4. Input kode pada kasir (uji barcode keyboard)
 
 Di halaman Kasir tersedia kolom **Barcode / SKU**. Ketik SKU produk yang sudah terdaftar lalu tekan Enter, atau gunakan scanner USB yang berperilaku seperti keyboard dan mengirim Enter setelah kode. Produk aktif akan masuk ke keranjang; pemindaian berulang menambah jumlah sesuai kolom Jumlah. Kode tidak dikenal akan menampilkan peringatan. Tanpa scanner, pengujian tetap dapat dilakukan dengan mengetik SKU secara manual.
 
 Saat ini nilai yang dicari adalah SKU produk, bukan kolom barcode pabrikan yang terpisah. Pada formulir produk baru, tombol **Buat kode otomatis** akan memilih SKU internal `KK-000001` dan seterusnya yang belum digunakan. Kode internal tidak sama dengan GTIN resmi GS1; jangan mengklaimnya sebagai identitas resmi perdagangan global. Kolom barcode pabrikan terpisah belum tersedia. Untuk membuat label, pilih produk di katalog lalu tekan **Buat label barcode SVG**. Hasilnya adalah gambar vektor Code 128 berdasarkan SKU, bukan GTIN resmi. Cetak pada ukuran yang menjaga garis tetap jelas, lalu uji pemindaian dengan perangkat yang mendukung Code 128.
 
-## 4. Penyesuaian stok
+## 5. Penyesuaian stok
 
 1. Pilih produk pada tab **Produk**.
 2. Tekan **Penyesuaian stok**.
@@ -40,7 +48,7 @@ Saat ini nilai yang dicari adalah SKU produk, bukan kolom barcode pabrikan yang 
 
 Pengurangan stok yang membuat stok negatif ditolak. Penjualan juga mengurangi stok dalam transaksi database yang sama dengan pencatatan penjualan.
 
-## 5. Memproses penjualan tunai
+## 6. Memproses penjualan tunai
 
 1. Buka tab **Kasir**.
 2. Cari dan pilih produk.
@@ -52,7 +60,7 @@ Pengurangan stok yang membuat stok negatif ditolak. Penjualan juga mengurangi st
 
 Sebelum menyimpan penjualan, aplikasi membaca ulang harga dan stok dari database. Jika stok tidak cukup, produk tidak aktif, atau uang tidak cukup, transaksi ditolak. Jika salah satu langkah penyimpanan gagal, seluruh perubahan transaksi dan stok harus dibatalkan.
 
-## 6. Pengaturan pajak
+## 7. Pengaturan pajak
 
 1. Buka tab **Pengaturan**.
 2. Pajak dalam keadaan nonaktif secara default.
@@ -64,13 +72,13 @@ Jika mode **Belum termasuk pajak** dipilih, pajak ditambahkan pada subtotal. Jik
 
 **Penting:** tarif tidak diisi otomatis dan fitur ini tidak menjamin kepatuhan terhadap aturan PPN. Pastikan status usaha, dasar pengenaan, jenis transaksi, tarif, dan perlakuan pajak sesuai ketentuan yang berlaku sebelum dipakai untuk transaksi nyata.
 
-## 6. Riwayat transaksi dan laporan
+## 8. Riwayat transaksi dan laporan
 
 - Tab **Riwayat transaksi** menampilkan transaksi tersimpan. Pilih transaksi lalu buka detail untuk melihat snapshot nama produk, harga, subtotal, pajak, total, dan pembayaran. Dari jendela detail, pilih **Simpan struk TXT** untuk mengekspor struk UTF-8 yang dapat dibuka atau dicetak melalui aplikasi lain.
 - Tab **Laporan** merangkum transaksi selesai dan unit terjual untuk rentang tanggal yang dimasukkan. Tanggal mengikuti zona waktu lokal komputer.
 - Mengubah harga atau nama produk tidak boleh mengubah snapshot pada transaksi lama.
 
-## 7. Backup dan pemulihan
+## 9. Backup dan pemulihan
 
 ### Membuat backup
 
@@ -87,10 +95,23 @@ Jika mode **Belum termasuk pajak** dipilih, pajak ditambahkan pada subtotal. Jik
 
 Jangan menghapus backup sebelum memastikan data hasil pemulihan benar. Untuk penggunaan penting, simpan salinan backup pada media lain yang tidak selalu terhubung ke komputer.
 
-## 8. Batasan versi alpha
+## 10. Pelanggan, supplier, dan operasional
+
+- Tab **Pelanggan & Supplier** menyimpan, mencari, mengubah, menonaktifkan, dan mengaktifkan kembali catatan pelanggan maupun supplier.
+- Tab **Operasional → Harga Modal & Stok** mengatur harga modal per produk dan mengekspor daftar stok menipis. Harga modal yang tersimpan pada transaksi adalah snapshot, sehingga perubahan harga modal berikutnya tidak mengubah transaksi lama.
+- Tab **Operasional → Pengeluaran** mencatat biaya toko dengan kategori, tanggal, nominal, dan catatan. Catatan yang salah dapat dibatalkan tanpa menghapus jejaknya.
+- Tab **Operasional → Retur** mencari transaksi selesai, memilih item dan jumlah yang diretur, lalu mencatat pengembalian stok. Retur berlebih ditolak.
+- Tab **Operasional → Laba** merangkum pendapatan barang, harga modal barang terjual, laba kotor, pengeluaran operasional, dan laba setelah pengeluaran pada rentang tanggal yang dipilih.
+- Pada tab **Kasir**, tombol Diskon mengatur diskon nominal untuk transaksi yang sedang disiapkan. Diskon di atas nilai keranjang ditolak dan kembali ke nol setelah transaksi berhasil.
+
+## 11. Informasi perangkat
+
+Tab **Perangkat** menampilkan versi Windows yang terdeteksi, arsitektur, jumlah prosesor logis, RAM, resolusi layar, dan profil aplikasi. KasirKita menyesuaikan ukuran jendela berdasarkan ruang layar dan profil perangkat. Informasi tersebut diproses lokal dan tidak dikirim ke server.
+
+## 12. Unduhan dan batasan versi alpha
 
 - Pembayaran yang tersedia saat ini adalah tunai.
-- Belum ada installer resmi.
-- Kompatibilitas pada Windows 8.1 harus diuji langsung sebelum dinyatakan didukung.
-- Pembatalan/refund, pengaturan identitas usaha pada struk, dan prosedur rilis masih memerlukan pengembangan dan verifikasi.
+- Installer Windows dibangun oleh GitHub Actions dan dipublikasikan langsung sebagai [KasirKita-Setup.exe](https://github.com/chocoanakbaik/KasirKita/raw/refs/heads/main/installer-release/KasirKita-Setup.exe). Build terbaru harus berhasil sebelum file dianggap versi terkini.
+- Target kompatibilitas adalah Windows 10 dan Windows 11; Windows 8.1 belum diverifikasi di perangkat fisik.
+- Alur retur, akun, dan modul operasional harus melewati uji manual pada installer Windows sebelum dipakai untuk operasional nyata.
 - Jalankan pengujian otomatis sebelum menggabungkan perubahan source.
