@@ -105,7 +105,7 @@ class AccountService:
                 VALUES (?, 'owner', ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    cleaned_name, _credential_hash(cleaned_nik, nik_salt), nik_salt.hex(),
+                    cleaned_name, _nik_hash(cleaned_nik, nik_salt), nik_salt.hex(),
                     _credential_hash(cleaned_password, salt), salt.hex(), PBKDF2_ITERATIONS,
                     _credential_hash(recovery_code.replace("-", ""), recovery_salt), recovery_salt.hex(),
                 ),
@@ -176,7 +176,7 @@ class AccountService:
                 VALUES (?, 'employee', ?, ?, ?, ?, ?)
                 """,
                 (
-                    cleaned_name, _credential_hash(cleaned_nik, nik_salt), nik_salt.hex(),
+                    cleaned_name, _nik_hash(cleaned_nik, nik_salt), nik_salt.hex(),
                     _credential_hash(cleaned_password, password_salt), password_salt.hex(),
                     PBKDF2_ITERATIONS,
                 ),
