@@ -156,11 +156,13 @@ class ReturnService:
             raise OperationError("Catatan retur maksimal 300 karakter.")
         with transaction(self.connection):
             sale = self.connection.execute(
-                "SELECT id, subtotal_rupiah, tax_rupiah, total_rupiah, status FROM sales WHERE id = ?",
+                "SELECT id, subtotal_rupiah, tax_rupiah, total_rupiah, tax_mode, discount_rupiah, status FROM sales WHERE id = ?",
                 (sale_id,),
             ).fetchone()
             if sale is None or sale["status"] != "completed":
                 raise OperationError("Transaksi tidak ditemukan atau tidak dapat diretur.")
+            gross_row = self.connection.execute("SELECT COALESCE(SUM(line_total_rupiah), 0) AS total FROM sale_items WHERE sale_id = ?", (sale_id,)).fetchone()
+            gross_sale = int(gross_row["total"])
             refund = 0
             normalized = []
             for item in items:
@@ -178,7 +180,14 @@ class ReturnService:
                 ).fetchone()
                 if line is None or quantity > int(line["quantity"]) - int(line["returned"]):
                     raise OperationError("Jumlah retur melebihi jumlah item yang belum diretur.")
-                line_refund = int(line["unit_price_rupiah"]) * quantity
+                line_gross = int(line["unit_price_rupiah"]) * quantity
+                discount_share = ((int(sale["discount_rupiah"]) * line_gross + gross_sale // 2) // gross_sale) if gross_sale else 0
+                discounted_line = max(0, line_gross - discount_share)
+                if sale["tax_mode"] == "inclusive":
+                    line_refund = discounted_line
+                else:
+                    tax_share = ((int(sale["tax_rupiah"]) * discounted_line + int(sale["subtotal_rupiah"]) // 2) // int(sale["subtotal_rupiah"])) if int(sale["subtotal_rupiah"]) else 0
+                    line_refund = discounted_line + tax_share
                 normalized.append((item_id, int(line["product_id"]), quantity, line_refund))
                 refund += line_refund
             if refund > int(sale["total_rupiah"]):
@@ -226,6 +235,8 @@ class ProfitService:
             raise OperationError("Tanggal awal tidak boleh setelah tanggal akhir.")
         rows = self.connection.execute(
             "SELECT si.id, si.unit_price_rupiah, si.unit_cost_rupiah, si.quantity, "
+            "s.discount_rupiah, "
+            "(SELECT COALESCE(SUM(si2.line_total_rupiah), 0) FROM sale_items si2 WHERE si2.sale_id = s.id) AS gross_sale, "
             "COALESCE((SELECT SUM(ri.quantity) FROM return_items ri JOIN returns r ON r.id = ri.return_id "
             "JOIN sales rs ON rs.id = r.sale_id WHERE ri.sale_item_id = si.id "
             "AND substr(rs.created_at, 1, 10) BETWEEN ? AND ?), 0) AS returned "
@@ -237,7 +248,10 @@ class ProfitService:
         cost = 0
         for row in rows:
             sold = int(row["quantity"]) - int(row["returned"])
-            revenue += int(row["unit_price_rupiah"]) * sold
+            line_revenue = int(row["unit_price_rupiah"]) * sold
+            gross_sale = int(row["gross_sale"])
+            discount_share = ((int(row["discount_rupiah"]) * line_revenue + gross_sale // 2) // gross_sale) if gross_sale else 0
+            revenue += max(0, line_revenue - discount_share)
             cost += int(row["unit_cost_rupiah"]) * sold
         expense_row = self.connection.execute(
             "SELECT COALESCE(SUM(amount_rupiah), 0) AS total FROM expenses "
