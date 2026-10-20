@@ -58,6 +58,10 @@ def _credential_hash(value: str, salt: bytes) -> str:
     return _derive(value, salt).hex()
 
 
+def _nik_hash(value: str, salt: bytes) -> str:
+    return hashlib.sha256(salt + value.encode("utf-8")).hexdigest()
+
+
 class AccountService:
     """Authenticate owners/employees and enforce account-management roles."""
 
@@ -87,7 +91,7 @@ class AccountService:
                 raise AuthenticationError("Akun pemilik sudah ada. Pendaftaran awal ditutup.")
             duplicate = self._connection.execute(
                 "SELECT 1 FROM users WHERE nik_hash = ? LIMIT 1",
-                (_credential_hash(cleaned_nik, nik_salt),),
+                (_nik_hash(cleaned_nik, nik_salt),),
             ).fetchone()
             # Hashes use per-record salts, so uniqueness is checked using the supplied
             # NIK against existing salts rather than comparing differently salted hashes.
@@ -103,7 +107,7 @@ class AccountService:
                 (
                     cleaned_name, _credential_hash(cleaned_nik, nik_salt), nik_salt.hex(),
                     _credential_hash(cleaned_password, salt), salt.hex(), PBKDF2_ITERATIONS,
-                    _credential_hash(recovery_code, recovery_salt), recovery_salt.hex(),
+                    _credential_hash(recovery_code.replace("-", ""), recovery_salt), recovery_salt.hex(),
                 ),
             )
         return {
@@ -129,7 +133,7 @@ class AccountService:
         ).fetchall()
         match: Optional[sqlite3.Row] = None
         for row in rows:
-            candidate = _credential_hash(cleaned_nik, bytes.fromhex(row["nik_salt"]))
+            candidate = _nik_hash(cleaned_nik, bytes.fromhex(row["nik_salt"]))
             if hmac.compare_digest(candidate, row["nik_hash"]):
                 match = row
                 break
@@ -236,7 +240,7 @@ class AccountService:
         if row is None:
             raise AuthenticationError("Akun pemilik tidak ditemukan.")
         valid_nik = hmac.compare_digest(
-            _credential_hash(cleaned_nik, bytes.fromhex(row["nik_salt"])), row["nik_hash"]
+            _nik_hash(cleaned_nik, bytes.fromhex(row["nik_salt"])), row["nik_hash"]
         )
         valid_code = bool(row["recovery_hash"]) and hmac.compare_digest(
             _credential_hash(normalized_code, bytes.fromhex(row["recovery_salt"])),
