@@ -21,15 +21,17 @@ def _parse_discount(value):
 
 class DiscountCheckoutProxy:
     def __init__(self, checkout):
-        self.checkout = checkout
+        self.service = checkout
         self.discount_rupiah = 0
 
     def preview(self, items):
-        return self.checkout.preview(items, discount_rupiah=self.discount_rupiah)
+        return self.service.preview(items, discount_rupiah=self.discount_rupiah)
 
     def checkout_sale(self, items, amount_received_rupiah):
-        result = self.checkout.checkout(items, amount_received_rupiah, discount_rupiah=self.discount_rupiah)
+        result = self.service.checkout(items, amount_received_rupiah, discount_rupiah=self.discount_rupiah)
         self.discount_rupiah = 0
+        if hasattr(self, "button"):
+            self.button.configure(text="Diskon: Rp 0")
         return result
 
     def checkout(self, items, amount_received_rupiah):
@@ -69,7 +71,7 @@ def attach_post_login_features(main_window, root, contacts, accounts, session, o
                 amount = _parse_discount(value)
                 items = [{"product_id": pid, "quantity": qty} for pid, qty in main_window.cart.items()]
                 if amount:
-                    preview = proxy.checkout.preview(items)
+                    preview = proxy.service.preview(items)
                     if amount > preview["gross_amount_rupiah"]:
                         raise OperationError("Diskon tidak boleh melebihi nilai keranjang.")
                 proxy.discount_rupiah = amount
@@ -80,6 +82,7 @@ def attach_post_login_features(main_window, root, contacts, accounts, session, o
             main_window.refresh_cart()
 
         discount_button = ttk.Button(pay_button.master, text="Diskon: Rp 0", command=set_discount)
+        proxy.button = discount_button
         discount_button.pack(before=pay_button, fill="x", pady=(0, 6))
 
     bar = ttk.Frame(root, padding=(10, 5))
