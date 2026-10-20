@@ -210,4 +210,49 @@ class ReturnService:
         return value
 
 
-__all__ = ["CostPriceService", "ExpenseService", "OperationError", "ReturnService"]
+class ProfitService:
+    """Calculate realized gross profit and operating expenses for a date range."""
+
+    def __init__(self, connection: sqlite3.Connection) -> None:
+        self.connection = connection
+
+    def summarize(self, start_date: str, end_date: str) -> Dict[str, int]:
+        for value in (start_date, end_date):
+            try:
+                date.fromisoformat(value)
+            except (TypeError, ValueError) as exc:
+                raise OperationError("Tanggal gunakan format YYYY-MM-DD.") from exc
+        if start_date > end_date:
+            raise OperationError("Tanggal awal tidak boleh setelah tanggal akhir.")
+        rows = self.connection.execute(
+            "SELECT si.id, si.unit_price_rupiah, si.unit_cost_rupiah, si.quantity, "
+            "COALESCE((SELECT SUM(ri.quantity) FROM return_items ri JOIN returns r ON r.id = ri.return_id "
+            "JOIN sales rs ON rs.id = r.sale_id WHERE ri.sale_item_id = si.id "
+            "AND substr(rs.created_at, 1, 10) BETWEEN ? AND ?), 0) AS returned "
+            "FROM sale_items si JOIN sales s ON s.id = si.sale_id "
+            "WHERE s.status = 'completed' AND substr(s.created_at, 1, 10) BETWEEN ? AND ?",
+            (start_date, end_date, start_date, end_date),
+        ).fetchall()
+        revenue = 0
+        cost = 0
+        for row in rows:
+            sold = int(row["quantity"]) - int(row["returned"])
+            revenue += int(row["unit_price_rupiah"]) * sold
+            cost += int(row["unit_cost_rupiah"]) * sold
+        expense_row = self.connection.execute(
+            "SELECT COALESCE(SUM(amount_rupiah), 0) AS total FROM expenses "
+            "WHERE is_voided = 0 AND expense_date BETWEEN ? AND ?",
+            (start_date, end_date),
+        ).fetchone()
+        gross_profit = revenue - cost
+        expenses = int(expense_row["total"])
+        return {
+            "revenue_rupiah": revenue,
+            "cost_of_goods_rupiah": cost,
+            "gross_profit_rupiah": gross_profit,
+            "expenses_rupiah": expenses,
+            "net_profit_rupiah": gross_profit - expenses,
+        }
+
+
+__all__ = ["CostPriceService", "ExpenseService", "OperationError", "ProfitService", "ReturnService"]
