@@ -60,13 +60,15 @@ KasirKita dapat melakukan kesalahan. Pengguna tetap perlu memeriksa harga, stok,
 
 ## Menjalankan dari source
 
-Persyaratan: Python dengan Tkinter tersedia.
+Persyaratan: Python dengan Tkinter tersedia. Untuk membuat logo PNG dan ikon Windows dari sumber brand, pasang dependensi build lalu jalankan generator satu kali:
 
 ```powershell
+py -m pip install -r requirements-build.txt
+py scripts/generate_brand_assets.py
 py -m kasirkita
 ```
 
-Data aplikasi disimpan pada direktori data pengguna, bukan di samping source atau executable. Pada Windows, lokasi default menggunakan `%LOCALAPPDATA%\\KasirKita`.
+Data aplikasi disimpan pada direktori data pengguna, bukan di samping source atau executable. Pada Windows, lokasi default menggunakan `%LOCALAPPDATA%\KasirKita`.
 
 ## Menjalankan pengujian
 
