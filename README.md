@@ -1,76 +1,89 @@
-# KasirKita
+# KasirKita Desktop
 
-KasirKita adalah aplikasi kasir (Point of Sale/POS) yang dikembangkan untuk dijual sebagai produk digital.
+**KasirKita** adalah aplikasi kasir desktop untuk usaha kecil yang membutuhkan pencatatan produk, stok, transaksi tunai, dan laporan penjualan secara lokal di komputer Windows.
 
-## Fokus Produk
+Dikembangkan oleh **The Choco Corporation**.
 
-Versi pertama adalah **KasirKita Desktop**, khusus laptop dan komputer desktop. Android dan platform lain tidak termasuk fokus versi pertama.
+> **Status produk: dalam pengembangan, belum siap dijual.** Dokumentasi ini menjelaskan ruang lingkup dan fitur yang telah ada di source. Paket instalasi dan seluruh alur utama tetap harus melewati pemeriksaan rilis sebelum ditawarkan kepada pembeli.
 
-Aplikasi dirancang offline-first dengan database SQLite lokal. Server, akun online, dan layanan berbayar bukan persyaratan penggunaan.
+## Ringkasan produk
 
-## Prinsip Pengembangan
+- **Desktop-first:** dirancang untuk laptop dan komputer desktop; bukan aplikasi Android.
+- **Offline-first:** alur kasir inti menggunakan database SQLite lokal dan tidak mensyaratkan akun, server, atau koneksi internet.
+- **Data milik pengguna:** database disimpan di direktori data pengguna Windows, terpisah dari folder program.
+- **Laporan lokal:** ekspor laporan dan struk ke format dokumen yang dapat dibuka di aplikasi lain.
+- **Dukungan:** tautan bantuan membuka Choco AI di browser; pelanggan dapat menyampaikan masukan melalui kanal bantuan tersebut.
 
-- Pengerjaan dilakukan bertahap, satu bagian pada satu waktu, dengan rincian dan hubungan antarmodul diperiksa sebelum melanjutkan.
-- Target kualitas adalah tidak ada bug yang diketahui saat suatu bagian dinyatakan selesai. Setiap temuan harus dicatat, ditelusuri penyebabnya, diperbaiki, lalu diuji ulang.
-- Algoritma bisnis dipisahkan dari UI dan akses database agar perhitungan tidak memiliki versi berbeda di setiap layar.
-- Uang disimpan sebagai nilai integer rupiah; binary floating-point tidak boleh digunakan untuk total transaksi.
-- Penjualan, item penjualan, pembayaran, dan perubahan stok disimpan sebagai operasi atomik.
-- Pengujian tidak boleh diklaim telah dilakukan jika memang belum dijalankan. Status yang belum diuji harus dinyatakan belum terverifikasi.
-- Penyelesaian tahap ditentukan oleh kriteria penerimaan dan hasil pengujian, bukan sekadar karena kode sudah ditulis.
+## Fitur yang tersedia di source
 
-## Dokumen Proyek
+### Kasir dan transaksi
+- Pencarian produk dan keranjang belanja.
+- Transaksi tunai dengan validasi uang yang diterima dan perhitungan kembalian.
+- Penyimpanan snapshot nama dan harga produk pada transaksi.
+- Pengurangan stok yang dilakukan bersama penyimpanan transaksi dalam satu operasi database.
+- Input SKU manual atau scanner USB yang berperilaku seperti keyboard.
 
-- [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
-- [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
-- [Panduan Pengguna Alpha](docs/PANDUAN_PENGGUNA_ALPHA.md)
-- [Checklist Rilis](docs/RELEASE_CHECKLIST.md)
+### Produk dan stok
+- Menambah, mencari, mengedit, serta mengaktifkan atau menonaktifkan produk.
+- SKU internal otomatis dengan pola seperti `KK-000001`.
+- Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan.
+- Ekspor katalog produk ke CSV dan label barcode Code 128 berbasis SKU ke SVG.
 
-## Menjalankan Aplikasi dari Source
+### Riwayat dan laporan
+- Riwayat transaksi dan detail transaksi tersimpan.
+- Ekspor struk ke TXT dan PDF.
+- Ringkasan penjualan menurut tanggal lokal komputer.
+- Ekspor laporan CSV, workbook Excel `.xlsx`, dan PDF A4 lanskap.
 
-Dengan Python dan Tkinter terpasang, dari direktori utama repository jalankan:
+### Pengaturan dan perlindungan data
+- Pengaturan pajak opsional, nonaktif secara default, dengan tarif dan mode yang dikonfigurasi pengguna.
+- Backup database serta validasi pemulihan dengan backup pengaman.
+- Tutorial offline pada penggunaan pertama, dapat dilewati dan dibuka ulang.
+- Log aplikasi lokal untuk membantu diagnosis masalah.
+
+## Batasan yang perlu diketahui
+
+- Metode pembayaran yang tersedia pada versi awal adalah tunai.
+- Barcode saat ini mencari SKU internal, bukan nomor produk resmi GS1/GTIN.
+- Pajak merupakan kalkulator yang dapat dikonfigurasi, bukan jaminan kepatuhan hukum atau perpajakan. Pengguna bertanggung jawab memverifikasi perlakuan pajak yang berlaku.
+- Dukungan versi Windows hanya boleh diumumkan berdasarkan pengujian pada sistem operasi terkait. Windows 8.1 belum terverifikasi langsung.
+- Installer dan paket portable belum boleh dianggap sebagai rilis final sebelum build, instalasi, shortcut, uninstall, backup/pemulihan, dan alur UI diuji pada lingkungan Windows yang bersih.
+- Belum ada klaim bahwa aplikasi bebas dari semua bug.
+
+## Identitas dan dukungan
+
+Nama produk: **KasirKita Desktop**  
+Penerbit: **The Choco Corporation**  
+Asisten bantuan dan kanal masukan: [Choco AI](https://choco-ai-platform.netlify.app/)
+
+KasirKita dapat melakukan kesalahan. Pengguna tetap perlu memeriksa harga, stok, hasil transaksi, dan laporan. Buat backup secara berkala dan simpan salinannya di lokasi terpisah.
+
+## Menjalankan dari source
+
+Persyaratan: Python dengan Tkinter tersedia.
 
 ```powershell
 py -m kasirkita
 ```
 
-Database lokal disimpan di folder data pengguna, bukan di samping source atau executable. Di Windows, lokasi default menggunakan folder Local AppData pengguna.
+Data aplikasi disimpan pada direktori data pengguna, bukan di samping source atau executable. Pada Windows, lokasi default menggunakan `%LOCALAPPDATA%\\KasirKita`.
 
-## Fitur yang Sudah Diimplementasikan
-
-- UI desktop dengan tab Kasir, Produk, Riwayat Transaksi, Laporan, dan Pengaturan.
-- Tutorial interaktif offline pada penggunaan pertama, statusnya tersimpan di SQLite lokal, dapat dilewati, dan bisa dibuka ulang melalui tombol Panduan / Tutorial.
-- Katalog produk: tambah, cari, edit detail, dan aktifkan/nonaktifkan produk.
-- Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan stok.
-- Transaksi tunai dengan validasi uang diterima dan kembalian, snapshot nama/harga produk, dan pengurangan stok atomik.
-- Pajak opsional dengan status nonaktif secara default, tarif yang dikonfigurasi pengguna, mode harga termasuk/tidak termasuk pajak, pembulatan integer, dan snapshot konfigurasi pajak pada transaksi.
-- Riwayat transaksi, detail struk, ekspor struk TXT UTF-8, dan ekspor struk PDF dari snapshot transaksi tersimpan.
-- Ringkasan penjualan berdasarkan tanggal lokal komputer, dengan ekspor laporan CSV UTF-8, workbook Excel `.xlsx` (ringkasan dan rincian harian), serta laporan PDF A4 lanskap. Ekspor dokumen dibuat lokal; paket `openpyxl` dan `reportlab` disertakan pada build portable.
-- Kolom input SKU/barcode di halaman Kasir menerima kode yang diketik manual atau input scanner USB yang berperilaku seperti keyboard dan mengakhiri input dengan Enter. Untuk saat ini pencarian barcode menggunakan SKU produk yang tersimpan; kode internal yang disarankan berbentuk `KK-000001`. Nomor tersebut adalah identitas internal toko, bukan GTIN resmi GS1. Kolom barcode pabrikan terpisah belum tersedia. Katalog menyediakan ekspor label barcode Code 128 dalam SVG berdasarkan SKU; file dapat dicetak melalui aplikasi yang mendukung SVG.
-- Backup database tervalidasi dan pemulihan dengan backup pengaman sebelum data aktif diganti.
-- Database lokal SQLite dan log aplikasi lokal.
-- Status tutorial dan preferensi onboarding tersimpan secara lokal; tidak menggunakan akun atau server.
-- Build Windows melalui GitHub Actions menghasilkan paket portable ZIP dan installer Windows `KasirKita-Setup.exe` berbasis Inno Setup, masing-masing dengan checksum SHA-256. Installer menyediakan wizard instalasi, shortcut Start Menu, opsi shortcut Desktop, dan uninstaller Windows. Hasil build tersedia sebagai artifact pada workflow run; installer belum disebut siap rilis sampai build dan pemasangannya diuji.
-- Pemberitahuan bahwa aplikasi dapat melakukan kesalahan, dengan tautan bantuan yang membuka platform Choco AI di browser bawaan. Logo merek ditampilkan bila Pillow tersedia; aplikasi tetap berjalan tanpa Pillow.
-
-## Menjalankan Pengujian
+## Menjalankan pengujian
 
 ```powershell
 py -m compileall -q kasirkita tests
 py -m unittest discover -v
 ```
 
-GitHub Actions menjalankan kompilasi dan pengujian otomatis pada Windows dan Ubuntu dengan Python 3.8 serta 3.12. Workflow yang hijau membuktikan pengujian pada lingkungan tersebut, bukan otomatis membuktikan kompatibilitas pada setiap versi Windows.
+GitHub Actions menguji source pada Windows dan Ubuntu dengan Python 3.8 dan 3.12. Hasil CI bukan pengganti pengujian manual installer pada setiap versi Windows yang akan didukung.
 
-## Status Rilis
+## Dokumentasi pengembangan
 
-**Aplikasi belum dinyatakan siap dijual.** Workflow build portable sudah disiapkan, tetapi hasil paket harus berhasil dibangun dan diuji sebelum dibagikan. Kompatibilitas pada Windows 8.1 belum diverifikasi langsung, dan alur UI harus melewati pemeriksaan manual end-to-end sebelum rilis. Fitur yang sudah ada tetap dapat memiliki masalah yang belum ditemukan; statusnya mengikuti bukti pengujian terbaru.
+- [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
+- [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
+- [Panduan Pengguna Alpha](docs/PANDUAN_PENGGUNA_ALPHA.md)
+- [Checklist Rilis](docs/RELEASE_CHECKLIST.md)
 
-## Pajak dan PPN
+## Gerbang rilis
 
-Pajak nonaktif secara default. Pengguna dapat mengaktifkan pajak, mengatur label, tarif, dan apakah harga yang dimasukkan sudah termasuk pajak atau belum. Tarif tidak diisi otomatis. Setiap transaksi menyimpan konfigurasi pajak yang digunakan saat transaksi dibuat, sehingga perubahan pengaturan tidak menulis ulang transaksi lama.
-
-Perhitungan ini adalah alat bantu yang dapat dikonfigurasi, **bukan sertifikasi kepatuhan pajak**. Perlakuan PPN dapat bergantung pada status usaha, jenis barang/jasa, dasar pengenaan pajak, dan ketentuan yang berlaku. Pengguna harus memverifikasi tarif serta perlakuan pajaknya sebelum memakai fitur ini untuk transaksi nyata.
-
-## Prinsip Kejujuran Status
-
-Dokumentasi ini membedakan rancangan, implementasi, pengujian, dan rilis. Tidak ada fitur yang boleh disebut selesai, teruji, kompatibel, atau siap dijual tanpa bukti yang sesuai.
+KasirKita baru dapat dipasarkan setelah seluruh pemeriksaan wajib pada [Checklist Rilis](docs/RELEASE_CHECKLIST.md) selesai dan bukti pengujiannya dicatat. Status README, source, workflow, dan paket distribusi harus tetap konsisten. Jangan mengiklankan sistem operasi, fitur, atau jaminan yang belum diverifikasi.
