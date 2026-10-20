@@ -1,4 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
+"""PyInstaller onedir build for a conventional Windows application package.
+
+Keeping the executable and its runtime files in a directory avoids the
+one-file self-extraction behavior that can contribute to antivirus false
+positives and makes the packaged files easier to inspect.
+"""
 from pathlib import Path
 
 ROOT = Path(SPECPATH)
@@ -24,9 +30,8 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,
     [],
+    exclude_binaries=True,
     name="KasirKita",
     debug=False,
     bootloader_ignore_signals=False,
@@ -35,4 +40,13 @@ exe = EXE(
     console=False,
     icon=str(ASSETS / "icons" / "kasirkita.ico"),
     disable_windowed_traceback=False,
+)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name="KasirKita",
 )
