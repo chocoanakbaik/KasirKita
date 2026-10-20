@@ -10,6 +10,7 @@ from tkinter import messagebox
 
 from kasirkita.infrastructure.backup import DatabaseBackupService
 from kasirkita.infrastructure.database import DatabaseError, connect_database, initialize_database
+from kasirkita.infrastructure.environment import configure_window_for_device, detect_device
 from kasirkita.infrastructure.product_repository import ProductRepository
 from kasirkita.services.checkout import CheckoutService
 from kasirkita.services.product_catalog import ProductCatalog
@@ -74,7 +75,14 @@ def main() -> int:
         sales_report = SalesReportService(connection)
         tax_settings = TaxSettingsService(connection)
         onboarding = OnboardingService(connection)
+        device = detect_device()
+        logging.info(
+            "Device profile: OS=%s version=%s architecture=%s cpu=%s memory_gb=%s profile=%s",
+            device.get("os_name"), device.get("os_version"), device.get("architecture"),
+            device.get("cpu_count"), device.get("memory_gb"), device.get("profile"),
+        )
         MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report, tax_settings, onboarding)
+        configure_window_for_device(root, device)
         root.withdraw()
         splash = SplashScreen(root)
 
