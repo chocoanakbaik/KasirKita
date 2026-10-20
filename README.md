@@ -19,6 +19,7 @@ Dikembangkan oleh **The Choco Corporation**.
 ### Kasir dan transaksi
 - Pencarian produk dan keranjang belanja.
 - Transaksi tunai dengan validasi uang yang diterima dan perhitungan kembalian.
+- Diskon nominal per transaksi dengan validasi agar tidak melebihi nilai keranjang.
 - Penyimpanan snapshot nama dan harga produk pada transaksi.
 - Pengurangan stok yang dilakukan bersama penyimpanan transaksi dalam satu operasi database.
 - Input SKU manual atau scanner USB yang berperilaku seperti keyboard.
@@ -27,12 +28,15 @@ Dikembangkan oleh **The Choco Corporation**.
 - Menambah, mencari, mengedit, serta mengaktifkan atau menonaktifkan produk.
 - SKU internal otomatis dengan pola seperti `KK-000001`.
 - Penyesuaian stok masuk/keluar dengan alasan dan catatan pergerakan.
+- Pencatatan harga modal per produk dan snapshot harga modal saat transaksi.
 - Ekspor katalog produk ke CSV dan label barcode Code 128 berbasis SKU ke SVG.
 
 ### Riwayat dan laporan
 - Riwayat transaksi dan detail transaksi tersimpan.
 - Ekspor struk ke TXT dan PDF.
 - Ringkasan penjualan menurut tanggal lokal komputer.
+- Catatan retur yang mengembalikan stok, pencatatan pengeluaran operasional, serta ringkasan laba berdasarkan harga modal dan retur.
+- Daftar stok menipis yang dapat diekspor ke CSV.
 - Ekspor laporan CSV, workbook Excel `.xlsx`, dan PDF A4 lanskap.
 
 ### Pengaturan dan perlindungan data
@@ -41,24 +45,31 @@ Dikembangkan oleh **The Choco Corporation**.
 - Tutorial offline pada penggunaan pertama, dapat dilewati dan dibuka ulang.
 - Log aplikasi lokal untuk membantu diagnosis masalah.
 
-## Ruang lingkup pengembangan berikutnya
+## Tahap implementasi
 
-Target produk mencakup tiga tahap pengembangan:
+Source saat ini mencakup fitur kasir inti dan modul operasional berikut:
+1. **Fitur inti:** kasir tunai, katalog produk, stok, riwayat transaksi, laporan dan ekspor, struk, pengaturan pajak, backup dan restore.
+2. **Operasional toko:** diskon nominal, pencatatan retur dan pengembalian stok, pengeluaran operasional, harga modal per produk, ringkasan laba, barcode SKU, dan ekspor daftar stok menipis.
+3. **Akun lokal dan data relasi:** login terpisah pemilik/pegawai, pendaftaran pemilik pertama, pengelolaan akun pegawai, pemulihan akun dengan NIK dan kode pemulihan satu kali, serta data pelanggan dan supplier.
 
-1. **Fitur inti:** kasir, katalog produk, stok, riwayat transaksi, laporan dan ekspor, struk, pengaturan toko, serta backup dan restore.
-2. **Operasional toko:** diskon, retur, pengeluaran operasional, perhitungan laba berdasarkan harga modal, dukungan barcode, dan peringatan stok menipis.
-3. **Akun lokal dan data relasi:** jalur login terpisah untuk pemilik dan pegawai, pendaftaran akun pemilik pertama, pengelolaan akun pegawai, serta data pelanggan dan supplier.
+Akun, pelanggan, supplier, retur, harga modal, dan pengeluaran disimpan pada SQLite lokal. NIK tidak disimpan sebagai teks biasa. Kata sandi diproses dengan PBKDF2-HMAC-SHA-256. Pemulihan akun pemilik memerlukan NIK dan kode pemulihan sekali pakai; kata sandi lama tidak pernah diekspor ke file. Fitur ini tidak bergantung pada Choco AI, Supabase, atau koneksi internet.
 
-Untuk tahap ketiga, login dan pemulihan akun dirancang berjalan lokal tanpa bergantung pada Choco AI atau Supabase. NIK tidak akan diperlakukan sebagai satu-satunya bukti kepemilikan akun. KasirKita tidak akan menyimpan atau mengekspor kata sandi lama dalam bentuk teks maupun ciphertext yang dapat dipulihkan otomatis; pemulihan yang aman harus mengatur ulang kata sandi setelah verifikasi tambahan. Detail persyaratan ada di [spesifikasi autentikasi dan pengelolaan akun](docs/AUTHENTICATION_AND_ACCOUNT_MANAGEMENT.md).
+Deteksi perangkat berjalan saat aplikasi dibuka dan menampilkan versi Windows, arsitektur, jumlah prosesor logis, RAM yang terdeteksi, resolusi layar, dan profil penggunaan sumber daya. Ukuran jendela disesuaikan dengan ruang layar dan profil perangkat. Kompatibilitas OS tetap ditentukan dari pengujian build dan pemasangan aktual, bukan dari deteksi saja.
 
-Fitur-fitur dalam roadmap di atas belum boleh dianggap tersedia sebelum diimplementasikan dan diuji.
+## Unduh installer Windows
+
+Installer dibangun oleh workflow Windows dan dipublikasikan langsung ke repository, jadi tidak perlu membuka daftar artifact untuk mengambil ZIP:
+
+[**Unduh KasirKita-Setup.exe**](https://github.com/chocoanakbaik/KasirKita/raw/refs/heads/main/installer-release/KasirKita-Setup.exe)
+
+Checksum SHA-256: [KasirKita-Setup.sha256](https://raw.githubusercontent.com/chocoanakbaik/KasirKita/main/installer-release/KasirKita-Setup.sha256). File installer diperbarui ketika build Windows terbaru berhasil.
 
 ## Batasan yang perlu diketahui
 
 - Metode pembayaran yang tersedia pada versi awal adalah tunai.
 - Barcode saat ini mencari SKU internal, bukan nomor produk resmi GS1/GTIN.
 - Pajak merupakan kalkulator yang dapat dikonfigurasi, bukan jaminan kepatuhan hukum atau perpajakan. Pengguna bertanggung jawab memverifikasi perlakuan pajak yang berlaku.
-- Dukungan versi Windows hanya boleh diumumkan berdasarkan pengujian pada sistem operasi terkait. Windows 8.1 belum terverifikasi langsung.
+- Target kompatibilitas adalah Windows 10 dan Windows 11; Windows 8.1 dapat dicoba tetapi tetap belum terverifikasi pada perangkat fisik. Deteksi sistem operasi tidak menggantikan uji instalasi pada setiap versi Windows.
 - Installer dan paket portable belum boleh dianggap sebagai rilis final sebelum build, instalasi, shortcut, uninstall, backup/pemulihan, dan alur UI diuji pada lingkungan Windows yang bersih.
 - Belum ada klaim bahwa aplikasi bebas dari semua bug.
 
