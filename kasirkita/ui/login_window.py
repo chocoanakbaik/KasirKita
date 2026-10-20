@@ -43,7 +43,7 @@ class LoginWindow:
         ttk.Button(frame, text="Login sebagai Pemilik", command=lambda: self.login_form("owner")).grid(row=3, column=0, sticky="ew", pady=5, ipady=5)
         ttk.Button(frame, text="Login sebagai Pegawai", command=lambda: self.login_form("employee")).grid(row=4, column=0, sticky="ew", pady=5, ipady=5)
         if not self.accounts.owner_exists():
-            ttk.Button(frame, text="Daftar akun pemilik pertama", command=self.register_form).grid(row=5, column=0, sticky="ew", pady=(14, 4), ipady=4)
+            ttk.Button(frame, text="Daftar", command=self.register_form).grid(row=5, column=0, sticky="ew", pady=(14, 4), ipady=4)
         else:
             ttk.Label(frame, text="Akun dan data disimpan lokal di komputer ini.", foreground="#64748b").grid(row=5, column=0, sticky="w", pady=(16, 0))
 
