@@ -144,11 +144,6 @@ def configure_window_for_device(root, device: Optional[Dict[str, object]] = None
             max(0, (screen_height - height) // 2)
         ))
         root.minsize(min(860, width), min(560, height))
-        try:
-            scaling = float(root.tk.call("tk", "scaling"))
-            root.tk.call("tk", "scaling", min(1.25, max(0.9, scaling)))
-        except (AttributeError, TypeError, ValueError):
-            pass
     except (AttributeError, TypeError, ValueError):
         pass
     return info
