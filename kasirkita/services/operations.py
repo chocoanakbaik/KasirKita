@@ -235,7 +235,7 @@ class ProfitService:
             raise OperationError("Tanggal awal tidak boleh setelah tanggal akhir.")
         rows = self.connection.execute(
             "SELECT si.id, si.unit_price_rupiah, si.unit_cost_rupiah, si.quantity, "
-            "s.discount_rupiah, "
+            "s.discount_rupiah, s.tax_mode, s.tax_rupiah, s.subtotal_rupiah, "
             "(SELECT COALESCE(SUM(si2.line_total_rupiah), 0) FROM sale_items si2 WHERE si2.sale_id = s.id) AS gross_sale, "
             "COALESCE((SELECT SUM(ri.quantity) FROM return_items ri JOIN returns r ON r.id = ri.return_id "
             "JOIN sales rs ON rs.id = r.sale_id WHERE ri.sale_item_id = si.id "
@@ -251,7 +251,12 @@ class ProfitService:
             line_revenue = int(row["unit_price_rupiah"]) * sold
             gross_sale = int(row["gross_sale"])
             discount_share = ((int(row["discount_rupiah"]) * line_revenue + gross_sale // 2) // gross_sale) if gross_sale else 0
-            revenue += max(0, line_revenue - discount_share)
+            net_line_revenue = max(0, line_revenue - discount_share)
+            if row["tax_mode"] == "inclusive":
+                discounted_sale = max(0, gross_sale - int(row["discount_rupiah"]))
+                tax_share = ((int(row["tax_rupiah"]) * net_line_revenue + discounted_sale // 2) // discounted_sale) if discounted_sale else 0
+                net_line_revenue = max(0, net_line_revenue - tax_share)
+            revenue += net_line_revenue
             cost += int(row["unit_cost_rupiah"]) * sold
         expense_row = self.connection.execute(
             "SELECT COALESCE(SUM(amount_rupiah), 0) AS total FROM expenses "
