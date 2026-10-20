@@ -266,6 +266,12 @@ class MainWindow:
         self._brand_logo = None
 
         self.root.title("KasirKita Desktop")
+        icon_path = Path(__file__).resolve().parents[2] / "assets" / "icons" / "kasirkita.ico"
+        try:
+            if icon_path.is_file():
+                self.root.iconbitmap(default=str(icon_path))
+        except tk.TclError:
+            logger.info("KasirKita window icon could not be applied.")
         self.root.geometry("1120x720")
         self.root.minsize(900, 600)
         self._configure_style()
@@ -358,22 +364,18 @@ class MainWindow:
         header.pack(fill="x", pady=(0, 12))
         brand = ttk.Frame(header, style="Header.TFrame")
         brand.pack(side="left")
-        logo_path = Path(__file__).resolve().parents[2] / "assets" / "brand"
+        logo_path = Path(__file__).resolve().parents[2] / "assets" / "brand" / "kasirkita-logo.png"
         try:
             from PIL import Image, ImageTk
-            candidates = sorted(
-                path for path in logo_path.iterdir()
-                if path.is_file() and path.suffix.lower() in (".png", ".jpg", ".jpeg")
-            )
-            if candidates:
-                with Image.open(candidates[0]) as source_image:
-                    source_image.thumbnail((40, 40))
+            if logo_path.is_file():
+                with Image.open(logo_path) as source_image:
+                    source_image.thumbnail((150, 40))
                     self._brand_logo = ImageTk.PhotoImage(source_image.copy())
                 ttk.Label(brand, image=self._brand_logo, style="Header.TLabel").pack(
                     side="left", padx=(0, 10)
                 )
         except (ImportError, OSError, ValueError):
-            logger.info("Brand logo unavailable; continuing with text branding.")
+            logger.info("KasirKita brand image unavailable; continuing with text branding.")
         ttk.Label(brand, text="KasirKita", style="Header.TLabel").pack(side="left")
         ttk.Label(
             header,
@@ -406,6 +408,11 @@ class MainWindow:
             text="KasirKita bisa saja melakukan kesalahan.",
             foreground="#64748b",
         ).pack(side="left")
+        ttk.Label(
+            footer,
+            text="KasirKita by The Choco Corporation",
+            foreground="#64748b",
+        ).pack(side="right", padx=(12, 8))
         ttk.Button(footer, text="Panduan / Tutorial", command=self.open_tutorial).pack(side="right", padx=(8, 0))
         self.support_link = tk.Label(
             footer,
