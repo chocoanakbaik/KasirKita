@@ -8,6 +8,9 @@
 - [ ] Database migration tests cover fresh databases, supported upgrades, and rollback after migration failure.
 - [ ] Checkout tests cover normal sales, duplicate cart items, insufficient payment, insufficient stock, inactive products, tax modes, and atomic rollback.
 - [ ] Stock adjustment tests cover increases, decreases, invalid reasons, and prevention of negative stock.
+- [ ] Account tests cover first-owner registration, duplicate NIK, role-separated login, disabled employee accounts, recovery-code reset, and owner-only employee management.
+- [ ] Contact tests cover customer/supplier create, search, update, deactivate, and validation.
+- [ ] Operations tests cover cost snapshots, discounts, returns, expenses, low-stock listing, and profit summaries.
 - [ ] Backup/restore tests cover valid files, invalid files, recovery behavior, and Windows file-handle cleanup.
 - [ ] UI smoke test passes on Windows.
 - [ ] First-run tutorial appears on a fresh local profile, persists completion/skip state, does not repeat on next launch, and can be reopened from the help control.
@@ -26,6 +29,9 @@
 - [ ] Add, edit, search, disable, and re-enable products.
 - [ ] Adjust stock and verify the audit trail.
 - [ ] Complete a cash sale and verify stock, payment, receipt, and report totals.
+- [ ] Test owner registration/login, employee creation/login, wrong-role login rejection, employee disable, and password recovery using the one-time recovery code.
+- [ ] Test customer and supplier create/edit/search/deactivate workflows.
+- [ ] Test discount boundaries, return limits and stock restoration, expense cancellation, cost price snapshots, low-stock export, and profit calculations.
 - [ ] Test keyboard-emulated scanner input and manually typed SKU; unknown codes must not alter the cart.
 - [ ] Verify XLSX summary/daily sheets and PDF report readability, file extensions, and content.
 - [ ] Verify receipt TXT/PDF exports match the persisted sale snapshot, including tax, totals, and item quantities.
@@ -38,6 +44,7 @@
 - [ ] Try a malformed backup and verify the active database remains intact.
 - [ ] Verify reports around local midnight and across a date boundary.
 - [ ] Verify keyboard navigation, readable labels, window resizing, and high-DPI behavior.
+- [ ] Verify device detection reports the expected Windows version, architecture, RAM, processor count, and display resolution on Windows 10 and Windows 11.
 - [ ] Verify error messages do not expose tracebacks or sensitive details.
 
 ## Packaging and delivery
