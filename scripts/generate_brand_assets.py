@@ -66,10 +66,10 @@ def main() -> None:
             continue
     if font is None:
         font = ImageFont.load_default()
-    draw.text((158, 30), "KasirKita", font=font, fill=INK)
+    draw.text((158, 30), "KasirKita", font=font, fill=WHITE)
     tagline_font = ImageFont.truetype(font.path, 19) if getattr(font, "path", None) else ImageFont.load_default()
     draw.text((161, 94), "KASIR DESKTOP  •  OFFLINE-FIRST",
-              font=tagline_font, fill=BG_DARK)
+              font=tagline_font, fill=GOLD)
     canvas.save(BRAND / "kasirkita-logo.png", optimize=True)
 
 
