@@ -138,7 +138,7 @@ def configure_window_for_device(root, device: Optional[Dict[str, object]] = None
             width = min(width, 1000)
             height = min(height, 680)
         width = max(800, width)
-        height = max(540, height)
+        height = max(500, height)
         root.geometry("{}x{}+{}+{}".format(
             width, height, max(0, (screen_width - width) // 2),
             max(0, (screen_height - height) // 2)
