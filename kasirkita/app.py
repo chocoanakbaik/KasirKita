@@ -91,12 +91,12 @@ def main() -> int:
         splash = SplashScreen(root)
 
         def launch_main(session: dict) -> None:
-            MainWindow(
+            main_window = MainWindow(
                 root, catalog, checkout, sales_history, backup_service,
                 stock_service, sales_report, tax_settings, onboarding,
             )
             attach_post_login_features(
-                root.winfo_children()[0] if root.winfo_children() else None,
+                main_window,
                 root, contacts, accounts, session, logout,
             )
             configure_window_for_device(root, device)
