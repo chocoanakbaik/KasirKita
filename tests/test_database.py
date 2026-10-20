@@ -84,6 +84,11 @@ class DatabaseFoundationTests(unittest.TestCase):
         try:
             legacy.executescript(
                 """
+                CREATE TABLE products (
+                    id INTEGER PRIMARY KEY, sku TEXT NOT NULL, name TEXT NOT NULL,
+                    unit_price_rupiah INTEGER NOT NULL, stock_quantity INTEGER NOT NULL DEFAULT 0,
+                    is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+                );
                 CREATE TABLE sales (
                     id INTEGER PRIMARY KEY,
                     receipt_number TEXT NOT NULL UNIQUE,
@@ -92,6 +97,12 @@ class DatabaseFoundationTests(unittest.TestCase):
                     tax_rupiah INTEGER NOT NULL DEFAULT 0,
                     total_rupiah INTEGER NOT NULL,
                     created_at TEXT NOT NULL
+                );
+                CREATE TABLE sale_items (
+                    id INTEGER PRIMARY KEY, sale_id INTEGER NOT NULL, product_id INTEGER,
+                    sku_snapshot TEXT NOT NULL, product_name_snapshot TEXT NOT NULL,
+                    quantity INTEGER NOT NULL, unit_price_rupiah INTEGER NOT NULL,
+                    line_total_rupiah INTEGER NOT NULL
                 );
                 INSERT INTO sales
                     (receipt_number, status, subtotal_rupiah, tax_rupiah, total_rupiah, created_at)
