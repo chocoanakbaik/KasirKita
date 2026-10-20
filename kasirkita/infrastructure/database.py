@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Iterator, Union
 
 DatabasePath = Union[str, Path]
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class DatabaseError(RuntimeError):
@@ -170,6 +170,50 @@ def _execute_script_atomically(connection: sqlite3.Connection, script: str) -> N
         raise
 
 
+_MIGRATION_2_TO_3_SQL = """
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    display_name TEXT NOT NULL CHECK (length(trim(display_name)) BETWEEN 1 AND 100),
+    role TEXT NOT NULL CHECK (role IN ('owner', 'employee')),
+    nik_hash TEXT NOT NULL,
+    nik_salt TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    password_salt TEXT NOT NULL,
+    password_iterations INTEGER NOT NULL CHECK (password_iterations >= 100000),
+    recovery_hash TEXT,
+    recovery_salt TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_users_role_active ON users(role, is_active);
+CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 120),
+    phone TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
+    is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
+CREATE TABLE IF NOT EXISTS suppliers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 120),
+    phone TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
+    is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+"""
+
+
 def initialize_database(connection: sqlite3.Connection) -> None:
     """Create the schema and apply every required migration in order."""
     try:
@@ -193,6 +237,13 @@ def initialize_database(connection: sqlite3.Connection) -> None:
                 _MIGRATION_1_TO_2_SQL + "\nPRAGMA user_version = 2;",
             )
             current_version = 2
+
+        if current_version == 2:
+            _execute_script_atomically(
+                connection,
+                _MIGRATION_2_TO_3_SQL + "\nPRAGMA user_version = 3;",
+            )
+            current_version = 3
 
         if current_version != SCHEMA_VERSION:
             raise DatabaseError(
