@@ -262,7 +262,7 @@ class AccountService:
         rows = self._connection.execute("SELECT nik_hash, nik_salt FROM users").fetchall()
         for row in rows:
             if hmac.compare_digest(
-                _credential_hash(nik, bytes.fromhex(row["nik_salt"])), row["nik_hash"]
+                _nik_hash(nik, bytes.fromhex(row["nik_salt"])), row["nik_hash"]
             ):
                 return True
         return False
