@@ -9,6 +9,8 @@ import os
 import platform
 import struct
 import sys
+import tkinter as tk
+from tkinter import ttk
 from typing import Dict, Optional, Tuple
 
 
@@ -144,6 +146,15 @@ def configure_window_for_device(root, device: Optional[Dict[str, object]] = None
             max(0, (screen_height - height) // 2)
         ))
         root.minsize(min(860, width), min(560, height))
+        if info.get("profile") == "hemat":
+            try:
+                style = ttk.Style(root)
+                style.configure("TButton", padding=(6, 4), font=("Segoe UI", 8))
+                style.configure("TNotebook.Tab", padding=(9, 6), font=("Segoe UI", 9, "bold"))
+                style.configure("Treeview", rowheight=24, font=("Segoe UI", 9))
+                style.configure("Treeview.Heading", padding=(5, 4), font=("Segoe UI", 9, "bold"))
+            except (tk.TclError, AttributeError, TypeError):
+                pass
     except (AttributeError, TypeError, ValueError):
         pass
     return info
