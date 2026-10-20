@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Iterator, Union
 
 DatabasePath = Union[str, Path]
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 class DatabaseError(RuntimeError):
@@ -214,6 +214,44 @@ CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
 """
 
 
+_MIGRATION_3_TO_4_SQL = """
+ALTER TABLE products ADD COLUMN unit_cost_rupiah INTEGER NOT NULL DEFAULT 0
+    CHECK (unit_cost_rupiah >= 0);
+ALTER TABLE sale_items ADD COLUMN unit_cost_rupiah INTEGER NOT NULL DEFAULT 0
+    CHECK (unit_cost_rupiah >= 0);
+ALTER TABLE sales ADD COLUMN discount_rupiah INTEGER NOT NULL DEFAULT 0
+    CHECK (discount_rupiah >= 0);
+CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY,
+    category TEXT NOT NULL CHECK (length(trim(category)) BETWEEN 1 AND 80),
+    description TEXT NOT NULL CHECK (length(trim(description)) BETWEEN 1 AND 200),
+    amount_rupiah INTEGER NOT NULL CHECK (amount_rupiah > 0),
+    expense_date TEXT NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    is_voided INTEGER NOT NULL DEFAULT 0 CHECK (is_voided IN (0, 1)),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
+CREATE TABLE IF NOT EXISTS returns (
+    id INTEGER PRIMARY KEY,
+    sale_id INTEGER NOT NULL REFERENCES sales(id) ON DELETE RESTRICT,
+    refund_rupiah INTEGER NOT NULL CHECK (refund_rupiah >= 0),
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE TABLE IF NOT EXISTS return_items (
+    id INTEGER PRIMARY KEY,
+    return_id INTEGER NOT NULL REFERENCES returns(id) ON DELETE RESTRICT,
+    sale_item_id INTEGER NOT NULL REFERENCES sale_items(id) ON DELETE RESTRICT,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    refund_rupiah INTEGER NOT NULL CHECK (refund_rupiah >= 0)
+);
+CREATE INDEX IF NOT EXISTS idx_returns_sale_id ON returns(sale_id);
+CREATE INDEX IF NOT EXISTS idx_return_items_sale_item_id ON return_items(sale_item_id);
+"""
+
+
 def initialize_database(connection: sqlite3.Connection) -> None:
     """Create the schema and apply every required migration in order."""
     try:
@@ -244,6 +282,13 @@ def initialize_database(connection: sqlite3.Connection) -> None:
                 _MIGRATION_2_TO_3_SQL + "\nPRAGMA user_version = 3;",
             )
             current_version = 3
+
+        if current_version == 3:
+            _execute_script_atomically(
+                connection,
+                _MIGRATION_3_TO_4_SQL + "\nPRAGMA user_version = 4;",
+            )
+            current_version = 4
 
         if current_version != SCHEMA_VERSION:
             raise DatabaseError(
