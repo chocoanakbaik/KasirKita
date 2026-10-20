@@ -63,15 +63,17 @@ class CheckoutService:
         self._connection = connection
         self._tax_settings = TaxSettingsService(connection)
 
-    def preview(self, items: Sequence[Mapping[str, object]]) -> dict:
+    def preview(self, items: Sequence[Mapping[str, object]], discount_rupiah: object = 0) -> dict:
         """Return current cart totals without reserving stock or writing data."""
         normalized_items = self._normalize_items(items)
         lines, gross_amount = self._price_cart(normalized_items)
+        discount = self._validate_discount(discount_rupiah, gross_amount)
         tax_config = self._read_tax_config()
-        totals = self._calculate_totals(gross_amount, tax_config)
+        totals = self._calculate_totals(gross_amount - discount, tax_config)
         return {
             **totals,
             "gross_amount_rupiah": gross_amount,
+            "discount_rupiah": discount,
             "tax_enabled": tax_config["enabled"],
             "tax_rate_basis_points": tax_config["rate_basis_points"],
             "tax_mode": tax_config["mode"],
@@ -84,6 +86,7 @@ class CheckoutService:
         items: Sequence[Mapping[str, object]],
         amount_received_rupiah: object,
         payment_method: str = "cash",
+        discount_rupiah: object = 0,
     ) -> dict:
         normalized_items = self._normalize_items(items)
         received = _money_integer(amount_received_rupiah)
@@ -100,8 +103,9 @@ class CheckoutService:
 
         with transaction(self._connection):
             result_lines, gross_amount = self._price_cart(normalized_items)
+            discount = self._validate_discount(discount_rupiah, gross_amount)
             tax_config = self._read_tax_config()
-            totals = self._calculate_totals(gross_amount, tax_config)
+            totals = self._calculate_totals(gross_amount - discount, tax_config)
             subtotal = totals["subtotal_rupiah"]
             tax = totals["tax_rupiah"]
             total = totals["total_rupiah"]
@@ -114,9 +118,9 @@ class CheckoutService:
                 """
                 INSERT INTO sales (
                     receipt_number, status, subtotal_rupiah, tax_rupiah, total_rupiah,
-                    tax_enabled, tax_rate_basis_points, tax_mode, tax_label
+                    tax_enabled, tax_rate_basis_points, tax_mode, tax_label, discount_rupiah
                 )
-                VALUES (?, 'completed', ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, 'completed', ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     receipt_number,
@@ -127,6 +131,7 @@ class CheckoutService:
                     tax_config["rate_basis_points"],
                     tax_config["mode"],
                     tax_config["label"],
+                    discount,
                 ),
             )
             sale_id = int(sale_cursor.lastrowid)
@@ -194,6 +199,7 @@ class CheckoutService:
             "receipt_number": receipt_number,
             "status": "completed",
             "subtotal_rupiah": subtotal,
+            "discount_rupiah": discount,
             "tax_rupiah": tax,
             "total_rupiah": total,
             "tax_enabled": tax_config["enabled"],
@@ -205,6 +211,14 @@ class CheckoutService:
             "payment_method": method,
             "items": result_lines,
         }
+
+    @staticmethod
+    def _validate_discount(value: object, gross_amount: int) -> int:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise InvalidCartError("Diskon harus berupa nominal rupiah bulat.")
+        if value < 0 or value > gross_amount:
+            raise InvalidCartError("Diskon tidak boleh negatif atau melebihi nilai keranjang.")
+        return value
 
     def _price_cart(self, normalized_items: Sequence[tuple[int, int]]) -> tuple[List[dict], int]:
         lines: List[dict] = []
