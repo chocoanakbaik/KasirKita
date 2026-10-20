@@ -19,6 +19,10 @@ from kasirkita.services.sales_report import SalesReportService
 from kasirkita.services.stock import StockService
 from kasirkita.services.tax_settings import TaxSettingsService
 from kasirkita.services.onboarding import OnboardingService
+from kasirkita.services.accounts import AccountService
+from kasirkita.services.contacts import ContactService
+from kasirkita.ui.login_window import LoginWindow
+from kasirkita.ui.post_login_features import attach_post_login_features
 from kasirkita.ui.main_window import MainWindow
 from kasirkita.ui.splash_screen import SplashScreen
 
@@ -81,16 +85,37 @@ def main() -> int:
             device.get("os_name"), device.get("os_version"), device.get("architecture"),
             device.get("cpu_count"), device.get("memory_gb"), device.get("profile"),
         )
-        MainWindow(root, catalog, checkout, sales_history, backup_service, stock_service, sales_report, tax_settings, onboarding)
-        configure_window_for_device(root, device)
+        accounts = AccountService(connection)
+        contacts = ContactService(connection)
         root.withdraw()
         splash = SplashScreen(root)
+
+        def launch_main(session: dict) -> None:
+            MainWindow(
+                root, catalog, checkout, sales_history, backup_service,
+                stock_service, sales_report, tax_settings, onboarding,
+            )
+            attach_post_login_features(
+                root.winfo_children()[0] if root.winfo_children() else None,
+                root, contacts, accounts, session, logout,
+            )
+            configure_window_for_device(root, device)
+            root.deiconify()
+            root.lift()
+
+        def logout() -> None:
+            for child in root.winfo_children():
+                try:
+                    child.destroy()
+                except tk.TclError:
+                    pass
+            root.withdraw()
+            LoginWindow(root, accounts, launch_main)
 
         def show_main_window() -> None:
             if splash.winfo_exists():
                 splash.destroy()
-            root.deiconify()
-            root.lift()
+            LoginWindow(root, accounts, launch_main)
 
         root.after(1100, show_main_window)
         root.mainloop()
