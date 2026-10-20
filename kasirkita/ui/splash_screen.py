@@ -27,21 +27,16 @@ class SplashScreen(tk.Toplevel):
         outer = tk.Frame(self, background="#111827", padx=30, pady=26)
         outer.pack(fill="both", expand=True)
         self._logo = None
-        brand_dir = Path(__file__).resolve().parents[2] / "assets" / "brand"
+        logo_path = Path(__file__).resolve().parents[2] / "assets" / "brand" / "kasirkita-logo.png"
         try:
             from PIL import Image, ImageTk
-
-            candidates = sorted(
-                path for path in brand_dir.iterdir()
-                if path.is_file() and path.suffix.lower() in (".png", ".jpg", ".jpeg")
-            )
-            if candidates:
-                with Image.open(candidates[0]) as source:
-                    source.thumbnail((68, 68))
+            if logo_path.is_file():
+                with Image.open(logo_path) as source:
+                    source.thumbnail((250, 62))
                     self._logo = ImageTk.PhotoImage(source.copy())
                 tk.Label(outer, image=self._logo, background="#111827").pack(pady=(0, 8))
         except (ImportError, OSError, ValueError):
-            logger.debug("Splash logo unavailable; using text branding.", exc_info=True)
+            logger.debug("KasirKita splash logo unavailable; using text branding.", exc_info=True)
 
         tk.Label(
             outer,
@@ -50,6 +45,13 @@ class SplashScreen(tk.Toplevel):
             foreground="#ffffff",
             background="#111827",
         ).pack()
+        tk.Label(
+            outer,
+            text="BY THE CHOCO CORPORATION",
+            font=("Segoe UI", 9, "bold"),
+            foreground="#F59E0B",
+            background="#111827",
+        ).pack(pady=(4, 2))
         tk.Label(
             outer,
             text="KASIR DESKTOP  •  OFFLINE-FIRST",
