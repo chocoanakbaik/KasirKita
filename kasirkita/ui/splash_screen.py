@@ -47,7 +47,7 @@ class SplashScreen(tk.Toplevel):
         ).pack()
         tk.Label(
             outer,
-            text="BY THE CHOCO CORPORATION",
+            text="BY THE CHOCO STUDIOS",
             font=("Segoe UI", 9, "bold"),
             foreground="#F59E0B",
             background="#111827",
