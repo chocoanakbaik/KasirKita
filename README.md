@@ -2,7 +2,7 @@
 
 **KasirKita** adalah aplikasi kasir desktop untuk usaha kecil yang membutuhkan pencatatan produk, stok, transaksi tunai, dan laporan penjualan secara lokal di komputer Windows.
 
-Dikembangkan oleh **The Choco Corporation**.
+Dikembangkan oleh **The Choco Studios**.
 
 > **Status produk: dalam pengembangan, belum siap dijual.** Dokumentasi ini menjelaskan ruang lingkup dan fitur yang telah ada di source. Paket instalasi dan seluruh alur utama tetap harus melewati pemeriksaan rilis sebelum ditawarkan kepada pembeli.
 
@@ -76,7 +76,7 @@ Checksum SHA-256: [KasirKita-Setup.sha256](https://raw.githubusercontent.com/cho
 ## Identitas dan dukungan
 
 Nama produk: **KasirKita Desktop**  
-Penerbit: **The Choco Corporation**  
+Penerbit: **The Choco Studios**  
 Asisten bantuan dan kanal masukan: [Choco AI](https://choco-ai-platform.netlify.app/)
 
 KasirKita dapat melakukan kesalahan. Pengguna tetap perlu memeriksa harga, stok, hasil transaksi, dan laporan. Buat backup secara berkala dan simpan salinannya di lokasi terpisah.
