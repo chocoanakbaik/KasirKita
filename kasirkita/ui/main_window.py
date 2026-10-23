@@ -410,7 +410,7 @@ class MainWindow:
         ).pack(side="left")
         ttk.Label(
             footer,
-            text="KasirKita by The Choco Corporation",
+            text="KasirKita by The Choco Studios",
             foreground="#64748b",
         ).pack(side="right", padx=(12, 8))
         ttk.Button(footer, text="Panduan / Tutorial", command=self.open_tutorial).pack(side="right", padx=(8, 0))
