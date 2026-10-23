@@ -2,7 +2,7 @@
 ; Least-privilege installer: installs only for the current Windows user.
 #define MyAppName "KasirKita"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "The Choco Corporation"
+#define MyAppPublisher "The Choco Studios"
 #define MyAppExeName "KasirKita.exe"
 
 [Setup]
