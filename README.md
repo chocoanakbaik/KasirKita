@@ -2,7 +2,7 @@
 
 **KasirKita** adalah aplikasi kasir desktop untuk usaha kecil yang membutuhkan pencatatan produk, stok, transaksi tunai, dan laporan penjualan secara lokal di komputer Windows.
 
-Dikembangkan oleh **The Choco Studios**.
+**Identitas payung:** The Choco Corporation. **Studio kreatif:** The Choco Studios (TCS), di bawah identitas payung tersebut. Keduanya adalah identitas branding dan bukan klaim badan hukum. Dikembangkan secara mandiri oleh Hasby Prasetya Saprudin.
 
 > **Status produk: dalam pengembangan, belum siap dijual.** Dokumentasi ini menjelaskan ruang lingkup dan fitur yang telah ada di source. Paket instalasi dan seluruh alur utama tetap harus melewati pemeriksaan rilis sebelum ditawarkan kepada pembeli.
 
