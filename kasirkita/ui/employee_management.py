@@ -56,7 +56,7 @@ class EmployeeManagementDialog(tk.Toplevel):
         frame.pack(fill="both", expand=True)
         fields = []
         for row, label, secret in (
-            (0, "Nama pegawai", False), (2, "NIK (16 digit)", False),
+            (0, "Nama pegawai", False), (2, "ID login (4–32 karakter)", False),
             (4, "Kata sandi sementara (minimal 10 karakter)", True),
         ):
             ttk.Label(frame, text=label).grid(row=row, column=0, sticky="w")
