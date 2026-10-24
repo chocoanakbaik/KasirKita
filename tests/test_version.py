@@ -26,7 +26,7 @@ class VersionConsistencyTests(unittest.TestCase):
         self.assertTrue(translation.is_file())
         self.assertIn("LanguageName=Bahasa Indonesia", translation.read_text(encoding="utf-8"))
         installer = (ROOT / "installer" / "KasirKita.iss").read_text(encoding="utf-8")
-        self.assertIn('MessagesFile: "languages\\\\Indonesian.isl"', installer)
+        self.assertIn('MessagesFile: "languages\\Indonesian.isl"', installer)
 
     def test_inno_setup_installer_matches_application_version(self):
         installer = (ROOT / "installer" / "KasirKita.iss").read_text(encoding="utf-8")
