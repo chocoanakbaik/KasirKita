@@ -13,6 +13,14 @@ class VersionConsistencyTests(unittest.TestCase):
     def test_version_uses_semantic_numeric_triplet(self):
         self.assertRegex(__version__, r"^\d+\.\d+\.\d+$")
 
+    def test_installer_packages_buyer_guide_not_developer_readme(self):
+        installer = (ROOT / "installer" / "KasirKita.iss").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "build-windows.yml").read_text(encoding="utf-8")
+        self.assertIn('PANDUAN_PENGGUNA.md', installer)
+        self.assertNotIn('README.md', installer)
+        self.assertIn('Copy-Item docs/PANDUAN_PENGGUNA.md package/PANDUAN_PENGGUNA.md', workflow)
+        self.assertNotIn('PANDUAN_PENGGUNA_ALPHA.md', workflow)
+
     def test_inno_setup_installer_matches_application_version(self):
         installer = (ROOT / "installer" / "KasirKita.iss").read_text(encoding="utf-8")
         match = re.search(r'^#define MyAppVersion "([^"]+)"$', installer, re.MULTILINE)
