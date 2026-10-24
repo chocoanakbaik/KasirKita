@@ -56,13 +56,13 @@ Akun, pelanggan, supplier, retur, harga modal, dan pengeluaran disimpan pada SQL
 
 Deteksi perangkat berjalan saat aplikasi dibuka dan menampilkan versi Windows, arsitektur, jumlah prosesor logis, RAM yang terdeteksi, resolusi layar, dan profil penggunaan sumber daya. Ukuran jendela disesuaikan dengan ruang layar dan profil perangkat. Kompatibilitas OS tetap ditentukan dari pengujian build dan pemasangan aktual, bukan dari deteksi saja.
 
-## Unduh installer Windows
+## Distribusi installer Windows
 
-Installer dibangun oleh workflow Windows dan dipublikasikan langsung ke repository, jadi tidak perlu membuka daftar artifact untuk mengambil ZIP:
+KasirKita sedang disiapkan untuk distribusi berbayar. Repository publik ini tidak menerbitkan salinan installer sebagai unduhan permanen. Workflow Windows pada pull request hanya memvalidasi bahwa installer dan paket portable berhasil dibangun.
 
-[**Unduh KasirKita-Setup.exe**](https://github.com/chocoanakbaik/KasirKita/raw/refs/heads/main/installer-release/KasirKita-Setup.exe)
+Paket untuk pengguna akhir harus berasal dari build yang telah diuji, disertai panduan pengguna dan checksum SHA-256. Workflow manual yang dijalankan oleh pemilik dapat menghasilkan paket untuk pemeriksaan atau persiapan rilis, tetapi artefak GitHub Actions bukan penyimpanan privat. Jangan mengandalkannya untuk merahasiakan file dari pengunjung repository publik.
 
-Checksum SHA-256: [KasirKita-Setup.sha256](https://raw.githubusercontent.com/chocoanakbaik/KasirKita/main/installer-release/KasirKita-Setup.sha256). File installer diperbarui ketika build Windows terbaru berhasil.
+Jangan mendistribusikan paket rilis sebelum semua pemeriksaan wajib pada [Checklist Rilis](docs/RELEASE_CHECKLIST.md) selesai.
 
 ## Batasan yang perlu diketahui
 
