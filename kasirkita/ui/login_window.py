@@ -50,25 +50,25 @@ class LoginWindow:
     def login_form(self, role):
         frame = self.clear()
         title = "Login sebagai Pemilik" if role == "owner" else "Login sebagai Pegawai"
-        self.heading(frame, title, "Masukkan NIK 16 digit dan kata sandi.")
-        ttk.Label(frame, text="NIK").grid(row=3, column=0, sticky="w")
-        nik = ttk.Entry(frame)
-        nik.grid(row=4, column=0, sticky="ew", pady=(3, 10))
+        self.heading(frame, title, "Masukkan ID login 4–32 karakter dan kata sandi.")
+        ttk.Label(frame, text="ID login").grid(row=3, column=0, sticky="w")
+        login_id = ttk.Entry(frame)
+        login_id.grid(row=4, column=0, sticky="ew", pady=(3, 10))
         ttk.Label(frame, text="Kata sandi").grid(row=5, column=0, sticky="w")
         password = ttk.Entry(frame, show="*")
         password.grid(row=6, column=0, sticky="ew", pady=(3, 12))
         actions = ttk.Frame(frame)
         actions.grid(row=7, column=0, sticky="ew")
         ttk.Button(actions, text="Kembali", command=self.home).pack(side="left")
-        ttk.Button(actions, text="Masuk", command=lambda: self.submit_login(role, nik.get(), password.get())).pack(side="right")
+        ttk.Button(actions, text="Masuk", command=lambda: self.submit_login(role, login_id.get(), password.get())).pack(side="right")
         if role == "owner":
             ttk.Button(frame, text="Lupa kata sandi", command=self.recover).grid(row=8, column=0, sticky="w", pady=(12, 0))
-        self.window.bind("<Return>", lambda _e: self.submit_login(role, nik.get(), password.get()))
-        nik.focus_set()
+        self.window.bind("<Return>", lambda _e: self.submit_login(role, login_id.get(), password.get()))
+        login_id.focus_set()
 
-    def submit_login(self, role, nik, password):
+    def submit_login(self, role, login_id, password):
         try:
-            session = self.accounts.authenticate(nik, password, role)
+            session = self.accounts.authenticate(login_id, password, role)
         except AuthenticationError as exc:
             messagebox.showerror("Login gagal", str(exc), parent=self.window)
             return
@@ -82,7 +82,7 @@ class LoginWindow:
         entries = []
         for row, label, secret in (
             (3, "Nama pemilik", False),
-            (5, "NIK (16 digit)", False),
+            (5, "ID login (4–32 karakter)", False),
             (7, "Kata sandi (minimal 10 karakter)", True),
             (9, "Ulangi kata sandi", True),
         ):
@@ -97,12 +97,12 @@ class LoginWindow:
         entries[0].focus_set()
 
     def submit_registration(self, entries):
-        name, nik, password, confirm = [entry.get() for entry in entries]
+        name, login_id, password, confirm = [entry.get() for entry in entries]
         if password != confirm:
             messagebox.showerror("Pendaftaran gagal", "Kedua kata sandi tidak sama.", parent=self.window)
             return
         try:
-            account = self.accounts.register_first_owner(name, nik, password)
+            account = self.accounts.register_first_owner(name, login_id, password)
         except AuthenticationError as exc:
             messagebox.showerror("Pendaftaran gagal", str(exc), parent=self.window)
             return
@@ -122,7 +122,7 @@ class LoginWindow:
         frame.columnconfigure(0, weight=1)
         fields = []
         for row, label, secret in (
-            (0, "NIK (16 digit)", False),
+            (0, "ID login (4–32 karakter)", False),
             (2, "Kode pemulihan", False),
             (4, "Kata sandi baru", True),
         ):
