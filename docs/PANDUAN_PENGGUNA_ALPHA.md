@@ -17,7 +17,7 @@ Pada awal instalasi, pilih **Daftar akun pemilik pertama**. Isi nama, ID login 4
 
 Saat aplikasi dibuka berikutnya, pilih jalur **Login sebagai Pemilik** atau **Login sebagai Pegawai**. Jalur tersebut terpisah; akun pemilik tidak dapat masuk lewat formulir pegawai dan sebaliknya. Pemilik dapat membuka **Akun Pegawai** untuk membuat akun pegawai, menonaktifkan akun, dan mengatur ulang kata sandi pegawai.
 
-Pemulihan kata sandi pemilik memerlukan ID login dan kode pemulihan sekali pakai, kemudian menetapkan kata sandi baru. ID login saja tidak cukup. Kode pemulihan disimpan di luar aplikasi dan tidak dapat ditampilkan ulang setelah pendaftaran. Kata sandi lama tidak pernah diekspor.
+Pemulihan kata sandi pemilik memerlukan ID login dan kode pemulihan sekali pakai, kemudian menetapkan kata sandi baru. ID login saja tidak cukup. Kode pemulihan disimpan di luar aplikasi dan tidak dapat ditampilkan ulang setelah pendaftaran. Kata sandi lama tidak pernah diekspor.\n\nUntuk database yang dibuat oleh build lama, ID login awal tetap berupa angka 16 digit yang sebelumnya digunakan. Migrasi tidak menghapus akun atau mengubah kata sandinya.
 
 ## 3. Menambahkan produk
 
