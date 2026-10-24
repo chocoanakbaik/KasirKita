@@ -1,6 +1,6 @@
 # Draft listing penjualan digital — KasirKita Desktop
 
-> **Status: draf internal, jangan diunggah sebagai produk berbayar sebelum checklist rilis wajib selesai.** Dokumen ini menyiapkan materi listing. CI hijau dan keberadaan installer belum membuktikan pemasangan, uninstall, pemulihan database, dan alur UI sudah lolos uji manual di Windows bersih.
+> **Status: draf internal, jangan diunggah sebagai produk berbayar sebelum checklist rilis wajib selesai.** Dokumen ini menyiapkan materi listing. CI hijau dan keberadaan installer belum membuktikan pemasangan, uninstall, pemulihan database, dan alur UI sudah lolos uji manual di Windows bersih. Repository publik tidak menyediakan installer permanen lagi. Artefak GitHub Actions dari repo publik tetap dapat diakses publik dan bukan penyimpanan rahasia; bila source/build perlu dirahasiakan, pindahkan distribusi komersial ke repository privat sebelum rilis.
 
 ## Judul produk
 
