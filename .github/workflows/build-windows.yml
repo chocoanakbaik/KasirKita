@@ -107,9 +107,9 @@ jobs:
           $installer = Resolve-Path "KasirKita-Setup.exe"
           $installRoot = Join-Path $env:LOCALAPPDATA "Programs\KasirKita"
           $startMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
-          & $installer /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
-          if ($LASTEXITCODE -ne 0) {
-            throw "Silent installation failed with exit code $LASTEXITCODE"
+          $installProcess = Start-Process -FilePath $installer.Path -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-") -Wait -PassThru
+          if ($installProcess.ExitCode -ne 0) {
+            throw "Silent installation failed with exit code $($installProcess.ExitCode)"
           }
           $installedExe = Join-Path $installRoot "KasirKita.exe"
           $uninstaller = Join-Path $installRoot "unins000.exe"
@@ -124,9 +124,9 @@ jobs:
           if (-not $shortcut) {
             throw "Start Menu shortcut was not found after installation."
           }
-          & $uninstaller /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
-          if ($LASTEXITCODE -ne 0) {
-            throw "Silent uninstall failed with exit code $LASTEXITCODE"
+          $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART") -Wait -PassThru
+          if ($uninstallProcess.ExitCode -ne 0) {
+            throw "Silent uninstall failed with exit code $($uninstallProcess.ExitCode)"
           }
           if (Test-Path $installedExe) {
             throw "Application executable remains after uninstall."
