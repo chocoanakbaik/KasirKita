@@ -2,7 +2,7 @@
 
 **KasirKita** adalah aplikasi kasir desktop untuk usaha kecil yang membutuhkan pencatatan produk, stok, transaksi tunai, dan laporan penjualan secara lokal di komputer Windows.
 
-Dikembangkan oleh **The Choco Studios**.
+**Identitas payung:** The Choco Corporation. **Studio kreatif:** The Choco Studios (TCS), di bawah identitas payung tersebut. Keduanya adalah identitas branding dan bukan klaim badan hukum. Dikembangkan secara mandiri oleh Hasby Prasetya Saprudin.
 
 > **Status produk: dalam pengembangan, belum siap dijual.** Dokumentasi ini menjelaskan ruang lingkup dan fitur yang telah ada di source. Paket instalasi dan seluruh alur utama tetap harus melewati pemeriksaan rilis sebelum ditawarkan kepada pembeli.
 
@@ -50,19 +50,19 @@ Dikembangkan oleh **The Choco Studios**.
 Source saat ini mencakup fitur kasir inti dan modul operasional berikut:
 1. **Fitur inti:** kasir tunai, katalog produk, stok, riwayat transaksi, laporan dan ekspor, struk, pengaturan pajak, backup dan restore.
 2. **Operasional toko:** diskon nominal, pencatatan retur dan pengembalian stok, pengeluaran operasional, harga modal per produk, ringkasan laba, barcode SKU, dan ekspor daftar stok menipis.
-3. **Akun lokal dan data relasi:** login terpisah pemilik/pegawai, pendaftaran pemilik pertama, pengelolaan akun pegawai, pemulihan akun dengan NIK dan kode pemulihan satu kali, serta data pelanggan dan supplier.
+3. **Akun lokal dan data relasi:** login terpisah pemilik/pegawai, pendaftaran pemilik pertama, pengelolaan akun pegawai, pemulihan akun dengan ID login dan kode pemulihan satu kali, serta data pelanggan dan supplier.
 
-Akun, pelanggan, supplier, retur, harga modal, dan pengeluaran disimpan pada SQLite lokal. NIK tidak disimpan sebagai teks biasa. Kata sandi diproses dengan PBKDF2-HMAC-SHA-256. Pemulihan akun pemilik memerlukan NIK dan kode pemulihan sekali pakai; kata sandi lama tidak pernah diekspor ke file. Fitur ini tidak bergantung pada Choco AI, Supabase, atau koneksi internet.
+Akun, pelanggan, supplier, retur, harga modal, dan pengeluaran disimpan pada SQLite lokal. Aplikasi tidak meminta NIK atau nomor identitas kependudukan. Pengguna memilih ID login lokal sepanjang 4–32 karakter; ID login disimpan sebagai hash bersalt. Kata sandi diproses dengan PBKDF2-HMAC-SHA-256. Pemulihan akun pemilik memerlukan ID login dan kode pemulihan sekali pakai; kata sandi lama tidak pernah diekspor ke file. Fitur ini tidak bergantung pada Choco AI, Supabase, atau koneksi internet.
 
 Deteksi perangkat berjalan saat aplikasi dibuka dan menampilkan versi Windows, arsitektur, jumlah prosesor logis, RAM yang terdeteksi, resolusi layar, dan profil penggunaan sumber daya. Ukuran jendela disesuaikan dengan ruang layar dan profil perangkat. Kompatibilitas OS tetap ditentukan dari pengujian build dan pemasangan aktual, bukan dari deteksi saja.
 
-## Unduh installer Windows
+## Distribusi installer Windows
 
-Installer dibangun oleh workflow Windows dan dipublikasikan langsung ke repository, jadi tidak perlu membuka daftar artifact untuk mengambil ZIP:
+KasirKita sedang disiapkan untuk distribusi berbayar. Repository publik ini tidak menerbitkan salinan installer sebagai unduhan permanen. Workflow Windows pada pull request hanya memvalidasi bahwa installer dan paket portable berhasil dibangun.
 
-[**Unduh KasirKita-Setup.exe**](https://github.com/chocoanakbaik/KasirKita/raw/refs/heads/main/installer-release/KasirKita-Setup.exe)
+Paket untuk pengguna akhir harus berasal dari build yang telah diuji, disertai panduan pengguna dan checksum SHA-256. Workflow manual yang dijalankan oleh pemilik dapat menghasilkan paket untuk pemeriksaan atau persiapan rilis, tetapi artefak GitHub Actions bukan penyimpanan privat. Jangan mengandalkannya untuk merahasiakan file dari pengunjung repository publik.
 
-Checksum SHA-256: [KasirKita-Setup.sha256](https://raw.githubusercontent.com/chocoanakbaik/KasirKita/main/installer-release/KasirKita-Setup.sha256). File installer diperbarui ketika build Windows terbaru berhasil.
+Jangan mendistribusikan paket rilis sebelum semua pemeriksaan wajib pada [Checklist Rilis](docs/RELEASE_CHECKLIST.md) selesai.
 
 ## Batasan yang perlu diketahui
 
@@ -107,7 +107,9 @@ GitHub Actions menguji source pada Windows dan Ubuntu dengan Python 3.8 dan 3.12
 - [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
 - [Autentikasi dan Pengelolaan Akun](docs/AUTHENTICATION_AND_ACCOUNT_MANAGEMENT.md)
 - [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
-- [Panduan Pengguna Alpha](docs/PANDUAN_PENGGUNA_ALPHA.md)
+- [Panduan Pengguna untuk paket rilis](docs/PANDUAN_PENGGUNA.md)
+- [Panduan Alpha internal](docs/PANDUAN_PENGGUNA_ALPHA.md)
+- [Draf listing Projects.co.id](docs/PRODUCT_LISTING_PROJECTS_CO_ID.md)
 - [Checklist Rilis](docs/RELEASE_CHECKLIST.md)
 
 ## Gerbang rilis

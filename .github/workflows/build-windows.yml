@@ -8,9 +8,11 @@ on:
       - "installer-release/**"
     tags:
       - "v*"
+  pull_request:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: kasirkita-windows-build-${{ github.ref }}
@@ -18,7 +20,10 @@ concurrency:
 
 jobs:
   build-windows:
+    name: Build and test Windows distribution
     runs-on: windows-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ["3.8"]
@@ -55,15 +60,21 @@ jobs:
             throw "Expected onedir executable was not created."
           }
           Copy-Item -Path "dist/KasirKita/*" -Destination "package/KasirKita" -Recurse -Force
-          Copy-Item README.md package/README.md
-          Copy-Item docs/PANDUAN_PENGGUNA_ALPHA.md package/PANDUAN_PENGGUNA.md
+          Copy-Item docs/PANDUAN_PENGGUNA.md package/PANDUAN_PENGGUNA.md
+          $versionText = Get-Content "kasirkita/__init__.py" -Raw
+          if ($versionText -notmatch '__version__\s*=\s*"([^"]+)"') {
+            throw "Application version could not be read from kasirkita/__init__.py"
+          }
+          $appVersion = $Matches[1]
           @(
-            "KasirKita Desktop"
+            "KasirKita Desktop v$appVersion"
+            "Dikembangkan oleh The Choco Studios."
             "Jalankan KasirKita.exe dari folder KasirKita."
             "Paket portable berisi executable dan file runtime pendamping."
             "Data aplikasi disimpan pada folder data pengguna Windows."
             "Jangan hapus folder data pengguna saat memperbarui aplikasi."
-            "Backup data sebelum mengganti versi."
+            "Buat dan verifikasi backup sebelum memulihkan atau mengganti versi."
+            "Baca PANDUAN_PENGGUNA.md sebelum mulai menggunakan aplikasi."
           ) | Set-Content -Encoding UTF8 package/PETUNJUK.txt
           Compress-Archive -Path package/* -DestinationPath KasirKita-Windows-Portable.zip -Force
           Get-FileHash KasirKita-Windows-Portable.zip -Algorithm SHA256 |
@@ -72,7 +83,6 @@ jobs:
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup --no-progress --yes
-
       - name: Build Windows installer
         shell: pwsh
         run: |
@@ -91,30 +101,39 @@ jobs:
             ForEach-Object { "$($_.Hash)  KasirKita-Setup.exe" } |
             Set-Content -Encoding ASCII KasirKita-Setup.sha256
 
-      - name: Publish installer into the main-branch ZIP
+      - name: Install and uninstall smoke test
         shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $installer = Resolve-Path "KasirKita-Setup.exe"
-          $releaseDir = "installer-release"
-          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-          Copy-Item $installer "$releaseDir/KasirKita-Setup.exe" -Force
-          Get-FileHash "$releaseDir/KasirKita-Setup.exe" -Algorithm SHA256 |
-            ForEach-Object { "$($_.Hash)  KasirKita-Setup.exe" } |
-            Set-Content -Encoding ASCII "$releaseDir/KasirKita-Setup.sha256"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$releaseDir/KasirKita-Setup.exe" "$releaseDir/KasirKita-Setup.sha256"
-          git diff --cached --quiet
-          if ($LASTEXITCODE -ne 0) {
-            git commit -m "Publish Windows installer [skip ci]"
-            git push origin HEAD:main
-          } else {
-            Write-Host "Published installer is already up to date."
+          $installRoot = Join-Path $env:LOCALAPPDATA "Programs\KasirKita"
+          $startMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+          $installProcess = Start-Process -FilePath $installer.Path -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-") -Wait -PassThru
+          if ($installProcess.ExitCode -ne 0) {
+            throw "Silent installation failed with exit code $($installProcess.ExitCode)"
+          }
+          $installedExe = Join-Path $installRoot "KasirKita.exe"
+          $uninstaller = Join-Path $installRoot "unins000.exe"
+          if (-not (Test-Path $installedExe)) {
+            throw "Installed KasirKita.exe was not found."
+          }
+          if (-not (Test-Path $uninstaller)) {
+            throw "KasirKita uninstaller was not found."
+          }
+          $shortcut = Get-ChildItem $startMenu -Recurse -Filter "KasirKita.lnk" -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+          if (-not $shortcut) {
+            throw "Start Menu shortcut was not found after installation."
+          }
+          $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART") -Wait -PassThru
+          if ($uninstallProcess.ExitCode -ne 0) {
+            throw "Silent uninstall failed with exit code $($uninstallProcess.ExitCode)"
+          }
+          if (Test-Path $installedExe) {
+            throw "Application executable remains after uninstall."
           }
 
-      - name: Upload portable package and installer
+      - name: Upload package for owner-triggered manual build only
+        if: github.event_name == 'workflow_dispatch' && github.actor == 'chocoanakbaik'
         uses: actions/upload-artifact@v4
         with:
           name: KasirKita-Windows-Release-Python38

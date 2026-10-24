@@ -20,7 +20,7 @@ class DatabaseFoundationTests(unittest.TestCase):
 
     def test_schema_version_is_initialized(self):
         version = self.connection.execute("PRAGMA user_version").fetchone()[0]
-        self.assertEqual(version, 4)
+        self.assertEqual(version, 5)
 
     def test_foreign_keys_are_enabled(self):
         enabled = self.connection.execute("PRAGMA foreign_keys").fetchone()[0]
@@ -112,7 +112,7 @@ class DatabaseFoundationTests(unittest.TestCase):
             )
             initialize_database(legacy)
             version = legacy.execute("PRAGMA user_version").fetchone()[0]
-            self.assertEqual(version, 4)
+            self.assertEqual(version, 5)
             row = legacy.execute(
                 """
                 SELECT receipt_number, total_rupiah, tax_enabled,
@@ -121,6 +121,14 @@ class DatabaseFoundationTests(unittest.TestCase):
                 """
             ).fetchone()
             self.assertEqual(tuple(row), ("OLD-RECEIPT", 5000, 0, 0, "exclusive", "PPN"))
+            user_columns = {
+                item["name"]
+                for item in legacy.execute("PRAGMA table_info(users)").fetchall()
+            }
+            self.assertIn("login_id_hash", user_columns)
+            self.assertIn("login_id_salt", user_columns)
+            self.assertNotIn("nik_hash", user_columns)
+            self.assertNotIn("nik_salt", user_columns)
         finally:
             legacy.close()
 

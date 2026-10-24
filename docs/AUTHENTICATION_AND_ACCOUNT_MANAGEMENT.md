@@ -13,9 +13,9 @@ Status: implementation requirements for the offline desktop application.
 ## Account identifiers and credentials
 
 - A user account has a unique username/identifier and role. The owner can create employee accounts.
-- If NIK is used, collect only what is necessary, explain its purpose, and do not display it in full after enrollment.
+- Use a locally chosen login ID rather than a national identity number. Accept 4–32 characters, starting with an ASCII letter or digit and continuing with letters, digits, dot, underscore, or hyphen; normalize to lowercase. Explain this is a local account name, not an identity-verification method.
 - Store password verifiers using a modern salted password-hashing function (PBKDF2-HMAC-SHA-256 from the Python standard library, with a suitably high iteration count) and constant-time verification. Never store plaintext passwords or reversible password ciphertext.
-- Do not use NIK alone as proof of account ownership. NIKs can be exposed or known by other people. Password recovery must require an additional secret or a trusted local recovery mechanism, rate-limit attempts, and avoid account-enumeration messages.
+- Do not request NIK or other government identity numbers for local POS authentication. Password recovery requires the login ID and a one-time recovery code; the code is invalidated after use. Rate-limit attempts and avoid account-enumeration messages.
 - Keep all account management local in the first release. Do not make login or recovery depend on Choco AI, Supabase, or an internet connection.
 
 ## Password recovery and recovery files

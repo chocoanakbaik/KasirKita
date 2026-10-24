@@ -1,7 +1,7 @@
 ; KasirKita Windows installer (Inno Setup 6)
 ; Least-privilege installer: installs only for the current Windows user.
 #define MyAppName "KasirKita"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.1.0"
 #define MyAppPublisher "The Choco Studios"
 #define MyAppExeName "KasirKita.exe"
 
@@ -26,14 +26,13 @@ SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "indonesian"; MessagesFile: "languages\Indonesian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Buat ikon di Desktop"; GroupDescription: "Pintasan tambahan:"; Flags: unchecked
 
 [Files]
 Source: "..\package\KasirKita\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\package\README.md"; DestDir: "{app}\Dokumentasi"; Flags: ignoreversion
 Source: "..\package\PANDUAN_PENGGUNA.md"; DestDir: "{app}\Dokumentasi"; Flags: ignoreversion
 Source: "..\package\PETUNJUK.txt"; DestDir: "{app}"; Flags: ignoreversion
 

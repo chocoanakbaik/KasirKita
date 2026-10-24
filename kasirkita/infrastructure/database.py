@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Iterator, Union
 
 DatabasePath = Union[str, Path]
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 class DatabaseError(RuntimeError):
@@ -252,6 +252,12 @@ CREATE INDEX IF NOT EXISTS idx_return_items_sale_item_id ON return_items(sale_it
 """
 
 
+_MIGRATION_4_TO_5_SQL = """
+ALTER TABLE users RENAME COLUMN nik_hash TO login_id_hash;
+ALTER TABLE users RENAME COLUMN nik_salt TO login_id_salt;
+"""
+
+
 def initialize_database(connection: sqlite3.Connection) -> None:
     """Create the schema and apply every required migration in order."""
     try:
@@ -289,6 +295,13 @@ def initialize_database(connection: sqlite3.Connection) -> None:
                 _MIGRATION_3_TO_4_SQL + "\nPRAGMA user_version = 4;",
             )
             current_version = 4
+
+        if current_version == 4:
+            _execute_script_atomically(
+                connection,
+                _MIGRATION_4_TO_5_SQL + "\nPRAGMA user_version = 5;",
+            )
+            current_version = 5
 
         if current_version != SCHEMA_VERSION:
             raise DatabaseError(
