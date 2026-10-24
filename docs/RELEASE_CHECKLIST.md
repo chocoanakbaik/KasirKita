@@ -5,10 +5,13 @@
 ## Automated verification
 
 - [ ] Latest main-branch workflow passes on Windows and Ubuntu for all configured Python versions.
+- [ ] App title, internal version, installer version, and portable instructions show the same version.
+- [ ] Installer language is Indonesian and the installed product contains the buyer-facing user guide, not the developer README or alpha-only documentation.
+- [ ] Fresh registration and existing-version migration use local login IDs without asking for NIK.
 - [ ] Database migration tests cover fresh databases, supported upgrades, and rollback after migration failure.
 - [ ] Checkout tests cover normal sales, duplicate cart items, insufficient payment, insufficient stock, inactive products, tax modes, and atomic rollback.
 - [ ] Stock adjustment tests cover increases, decreases, invalid reasons, and prevention of negative stock.
-- [ ] Account tests cover first-owner registration, duplicate NIK, role-separated login, disabled employee accounts, recovery-code reset, and owner-only employee management.
+- [ ] Account tests cover first-owner registration, duplicate login ID, role-separated login, disabled employee accounts, recovery-code reset, and owner-only employee management.
 - [ ] Contact tests cover customer/supplier create, search, update, deactivate, and validation.
 - [ ] Operations tests cover cost snapshots, discounts, returns, expenses, low-stock listing, and profit summaries.
 - [ ] Backup/restore tests cover valid files, invalid files, recovery behavior, and Windows file-handle cleanup.
