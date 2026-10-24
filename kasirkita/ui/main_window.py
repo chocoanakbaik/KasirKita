@@ -12,6 +12,7 @@ from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 from typing import Dict, Optional
 
+from kasirkita import __version__
 from kasirkita.infrastructure.backup import BackupError, DatabaseBackupService
 from kasirkita.infrastructure.product_repository import (
     DuplicateSKUError,
@@ -265,7 +266,7 @@ class MainWindow:
         self._sales_rows: Dict[int, dict] = {}
         self._brand_logo = None
 
-        self.root.title("KasirKita Desktop")
+        self.root.title(f"KasirKita Desktop v{__version__}")
         icon_path = Path(__file__).resolve().parents[2] / "assets" / "icons" / "kasirkita.ico"
         try:
             if icon_path.is_file():
@@ -379,7 +380,7 @@ class MainWindow:
         ttk.Label(brand, text="KasirKita", style="Header.TLabel").pack(side="left")
         ttk.Label(
             header,
-            text="DESKTOP  •  LOKAL",
+            text=f"DESKTOP  •  LOKAL  •  v{__version__}",
             style="HeaderMeta.TLabel",
         ).pack(side="right", padx=4)
 
@@ -1059,6 +1060,13 @@ class MainWindow:
             wraplength=520,
             foreground="#596777",
         ).grid(row=5, column=0, columnspan=2, sticky="w", pady=(4, 0))
+
+        ttk.Label(
+            self.settings_tab,
+            text=f"KasirKita Desktop v{__version__}  •  Dikembangkan oleh The Choco Studios",
+            foreground="#64748b",
+            wraplength=720,
+        ).grid(row=1, column=0, sticky="w", pady=(16, 0))
 
     def load_tax_settings(self) -> None:
         try:
