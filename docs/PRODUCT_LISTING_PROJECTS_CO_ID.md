@@ -21,11 +21,11 @@ Fitur utama:
 - Laporan penjualan dan ekspor CSV, Excel (.xlsx), serta PDF.
 - Pencatatan pelanggan dan supplier.
 - Retur penjualan, pengeluaran operasional, harga modal, ringkasan laba, dan stok menipis.
-- Akun lokal pemilik/pegawai.
+- Akun lokal pemilik/pegawai menggunakan ID login pilihan pengguna; tidak memerlukan NIK.
 - Database SQLite lokal, backup, dan pemulihan.
 - Tidak memerlukan langganan server atau koneksi internet untuk alur kasir inti.
 
-KasirKita dibuat oleh The Choco Studios dan berfokus pada alur kerja desktop/offline. Database usaha tersimpan di komputer pengguna; pengguna bertanggung jawab menjaga akses Windows serta membuat backup di lokasi terpisah.
+KasirKita dibuat oleh The Choco Studios dan berfokus pada alur kerja desktop/offline. Pendaftaran akun menggunakan ID login lokal, bukan NIK, sehingga aplikasi tidak perlu mengumpulkan nomor identitas kependudukan. Database usaha tersimpan di komputer pengguna; pengguna bertanggung jawab menjaga akses Windows serta membuat backup di lokasi terpisah.
 
 ## Batasan yang perlu disampaikan kepada pembeli
 
