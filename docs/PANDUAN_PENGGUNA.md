@@ -6,13 +6,13 @@ Panduan ini ditujukan untuk pengguna yang menjalankan KasirKita dari installer W
 
 1. Selesaikan pemasangan KasirKita, lalu buka dari menu Start Windows.
 2. Pada penggunaan pertama, pilih **Daftar** untuk membuat akun pemilik pertama.
-3. Isi nama pemilik, NIK 16 digit, kata sandi minimal 10 karakter, dan konfirmasi kata sandi.
+3. Isi nama pemilik, ID login unik 4–32 karakter, kata sandi minimal 10 karakter, dan konfirmasi kata sandi. ID login harus diawali huruf atau angka; karakter berikutnya boleh berupa huruf, angka, titik, garis bawah, atau tanda hubung.
 4. Simpan kode pemulihan satu kali di tempat aman yang terpisah dari komputer. Kode ini tidak dapat ditampilkan ulang setelah pendaftaran.
 5. Setelah akun pemilik dibuat, login berikutnya dilakukan melalui pilihan **Login sebagai Pemilik** atau **Login sebagai Pegawai**.
 
 Akun pemilik pertama hanya dapat didaftarkan saat belum ada akun pemilik pada database lokal. Pemilik dapat mengelola akun pegawai dari menu yang tersedia setelah login. Jalur login pemilik dan pegawai terpisah.
 
-**Privasi:** aplikasi meminta NIK sebagai pengenal akun lokal. Jangan menggunakan komputer bersama yang tidak tepercaya untuk menyimpan data usaha. Jangan membagikan NIK, kata sandi, atau kode pemulihan kepada pihak lain.
+**Privasi:** KasirKita tidak meminta NIK atau nomor identitas kependudukan. ID login hanya digunakan untuk mengenali akun lokal dan disimpan sebagai hash bersalt. Jangan menggunakan komputer bersama yang tidak tepercaya untuk menyimpan data usaha. Jangan membagikan ID login, kata sandi, atau kode pemulihan kepada pihak lain.
 
 ## 2. Menyiapkan katalog produk
 
@@ -85,4 +85,4 @@ Informasi perangkat pada tab **Perangkat** digunakan untuk menampilkan versi Win
 
 ## 10. Bantuan
 
-Untuk bantuan produk, kunjungi [Choco AI](https://choco-ai-platform.netlify.app/) atau hubungi The Choco Studios melalui `thechocostudio@gmail.com`. Saat melaporkan masalah, jelaskan versi aplikasi, versi Windows, langkah yang dilakukan, dan pesan kesalahan. Jangan kirim database usaha, NIK, kata sandi, atau kode pemulihan kecuali benar-benar diperlukan dan melalui kanal yang disepakati secara aman.
+Untuk bantuan produk, kunjungi [Choco AI](https://choco-ai-platform.netlify.app/) atau hubungi The Choco Studios melalui `thechocostudio@gmail.com`. Saat melaporkan masalah, jelaskan versi aplikasi, versi Windows, langkah yang dilakukan, dan pesan kesalahan. Jangan kirim database usaha, kata sandi, atau kode pemulihan melalui laporan dukungan biasa.
