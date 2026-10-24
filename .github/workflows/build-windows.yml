@@ -100,7 +100,8 @@ jobs:
           Get-FileHash KasirKita-Setup.exe -Algorithm SHA256 |
             ForEach-Object { "$($_.Hash)  KasirKita-Setup.exe" } |
             Set-Content -Encoding ASCII KasirKita-Setup.sha256
-      - name: Upload portable package and installer
+      - name: Upload package for owner-triggered manual build only
+        if: github.event_name == 'workflow_dispatch' && github.actor == 'chocoanakbaik'
         uses: actions/upload-artifact@v4
         with:
           name: KasirKita-Windows-Release-Python38
@@ -110,41 +111,3 @@ jobs:
             KasirKita-Setup.exe
             KasirKita-Setup.sha256
           if-no-files-found: error
-
-  publish-installer:
-    name: Publish tested installer to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build-windows
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Check out triggering main commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: Download tested Windows outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: KasirKita-Windows-Release-Python38
-          path: release-artifacts
-      - name: Publish only if main has not moved during build
-        shell: bash
-        run: |
-          git fetch origin main
-          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-            echo "::error::main changed while the Windows package was building. Run the build again for the latest main commit."
-            exit 1
-          fi
-          mkdir -p installer-release
-          cp release-artifacts/KasirKita-Setup.exe installer-release/KasirKita-Setup.exe
-          cp release-artifacts/KasirKita-Setup.sha256 installer-release/KasirKita-Setup.sha256
-          git add installer-release/KasirKita-Setup.exe installer-release/KasirKita-Setup.sha256
-          if git diff --cached --quiet; then
-            echo "Published installer is already up to date."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Publish Windows installer [skip ci]"
-            git push origin HEAD:main
-          fi
