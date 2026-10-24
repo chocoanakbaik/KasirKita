@@ -26,14 +26,13 @@ SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
-Name: "indonesian"; MessagesFile: "languages\\Indonesian.isl"
+Name: "indonesian"; MessagesFile: "languages\Indonesian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Buat ikon di Desktop"; GroupDescription: "Pintasan tambahan:"; Flags: unchecked
 
 [Files]
 Source: "..\package\KasirKita\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\package\README.md"; DestDir: "{app}\Dokumentasi"; Flags: ignoreversion
 Source: "..\package\PANDUAN_PENGGUNA.md"; DestDir: "{app}\Dokumentasi"; Flags: ignoreversion
 Source: "..\package\PETUNJUK.txt"; DestDir: "{app}"; Flags: ignoreversion
 
