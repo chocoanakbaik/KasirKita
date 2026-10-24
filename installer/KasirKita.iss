@@ -1,7 +1,7 @@
 ; KasirKita Windows installer (Inno Setup 6)
 ; Least-privilege installer: installs only for the current Windows user.
 #define MyAppName "KasirKita"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "0.1.0"
 #define MyAppPublisher "The Choco Studios"
 #define MyAppExeName "KasirKita.exe"
 
