@@ -61,8 +61,13 @@ jobs:
           }
           Copy-Item -Path "dist/KasirKita/*" -Destination "package/KasirKita" -Recurse -Force
           Copy-Item docs/PANDUAN_PENGGUNA.md package/PANDUAN_PENGGUNA.md
+          $versionText = Get-Content "kasirkita/__init__.py" -Raw
+          if ($versionText -notmatch '__version__\s*=\s*"([^"]+)"') {
+            throw "Application version could not be read from kasirkita/__init__.py"
+          }
+          $appVersion = $Matches[1]
           @(
-            "KasirKita Desktop v0.1.0"
+            "KasirKita Desktop v$appVersion"
             "Dikembangkan oleh The Choco Studios."
             "Jalankan KasirKita.exe dari folder KasirKita."
             "Paket portable berisi executable dan file runtime pendamping."
@@ -81,7 +86,7 @@ jobs:
       - name: Build Windows installer
         shell: pwsh
         run: |
-          $compiler = "${env:ProgramFiles(x86)}\\Inno Setup 6\\ISCC.exe"
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $compiler)) {
             throw "Inno Setup compiler not found: $compiler"
           }
