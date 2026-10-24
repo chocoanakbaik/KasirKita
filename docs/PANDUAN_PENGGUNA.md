@@ -10,7 +10,7 @@ Panduan ini ditujukan untuk pengguna yang menjalankan KasirKita dari installer W
 4. Simpan kode pemulihan satu kali di tempat aman yang terpisah dari komputer. Kode ini tidak dapat ditampilkan ulang setelah pendaftaran.
 5. Setelah akun pemilik dibuat, login berikutnya dilakukan melalui pilihan **Login sebagai Pemilik** atau **Login sebagai Pegawai**.
 
-Akun pemilik pertama hanya dapat didaftarkan saat belum ada akun pemilik pada database lokal. Pemilik dapat mengelola akun pegawai dari menu yang tersedia setelah login. Jalur login pemilik dan pegawai terpisah.
+Akun pemilik pertama hanya dapat didaftarkan saat belum ada akun pemilik pada database lokal. Pemilik dapat mengelola akun pegawai dari menu yang tersedia setelah login. Jalur login pemilik dan pegawai terpisah.\n\nJika Anda memperbarui dari build lama yang meminta NIK 16 digit, masukkan angka yang sama pada kolom **ID login** saat pertama kali masuk setelah pembaruan. Migrasi mempertahankan kredensial lokal yang ada; akun lama tidak otomatis diganti namanya.
 
 **Privasi:** KasirKita tidak meminta NIK atau nomor identitas kependudukan. ID login hanya digunakan untuk mengenali akun lokal dan disimpan sebagai hash bersalt. Jangan menggunakan komputer bersama yang tidak tepercaya untuk menyimpan data usaha. Jangan membagikan ID login, kata sandi, atau kode pemulihan kepada pihak lain.
 
