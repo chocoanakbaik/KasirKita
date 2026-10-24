@@ -50,9 +50,9 @@ Dikembangkan oleh **The Choco Studios**.
 Source saat ini mencakup fitur kasir inti dan modul operasional berikut:
 1. **Fitur inti:** kasir tunai, katalog produk, stok, riwayat transaksi, laporan dan ekspor, struk, pengaturan pajak, backup dan restore.
 2. **Operasional toko:** diskon nominal, pencatatan retur dan pengembalian stok, pengeluaran operasional, harga modal per produk, ringkasan laba, barcode SKU, dan ekspor daftar stok menipis.
-3. **Akun lokal dan data relasi:** login terpisah pemilik/pegawai, pendaftaran pemilik pertama, pengelolaan akun pegawai, pemulihan akun dengan NIK dan kode pemulihan satu kali, serta data pelanggan dan supplier.
+3. **Akun lokal dan data relasi:** login terpisah pemilik/pegawai, pendaftaran pemilik pertama, pengelolaan akun pegawai, pemulihan akun dengan ID login dan kode pemulihan satu kali, serta data pelanggan dan supplier.
 
-Akun, pelanggan, supplier, retur, harga modal, dan pengeluaran disimpan pada SQLite lokal. NIK tidak disimpan sebagai teks biasa. Kata sandi diproses dengan PBKDF2-HMAC-SHA-256. Pemulihan akun pemilik memerlukan NIK dan kode pemulihan sekali pakai; kata sandi lama tidak pernah diekspor ke file. Fitur ini tidak bergantung pada Choco AI, Supabase, atau koneksi internet.
+Akun, pelanggan, supplier, retur, harga modal, dan pengeluaran disimpan pada SQLite lokal. Aplikasi tidak meminta NIK atau nomor identitas kependudukan. Pengguna memilih ID login lokal sepanjang 4–32 karakter; ID login disimpan sebagai hash bersalt. Kata sandi diproses dengan PBKDF2-HMAC-SHA-256. Pemulihan akun pemilik memerlukan ID login dan kode pemulihan sekali pakai; kata sandi lama tidak pernah diekspor ke file. Fitur ini tidak bergantung pada Choco AI, Supabase, atau koneksi internet.
 
 Deteksi perangkat berjalan saat aplikasi dibuka dan menampilkan versi Windows, arsitektur, jumlah prosesor logis, RAM yang terdeteksi, resolusi layar, dan profil penggunaan sumber daya. Ukuran jendela disesuaikan dengan ruang layar dan profil perangkat. Kompatibilitas OS tetap ditentukan dari pengujian build dan pemasangan aktual, bukan dari deteksi saja.
 
@@ -107,7 +107,9 @@ GitHub Actions menguji source pada Windows dan Ubuntu dengan Python 3.8 dan 3.12
 - [Persyaratan Desktop v1](docs/REQUIREMENTS_DESKTOP_V1.md)
 - [Autentikasi dan Pengelolaan Akun](docs/AUTHENTICATION_AND_ACCOUNT_MANAGEMENT.md)
 - [Arsitektur Desktop v1](docs/ARCHITECTURE_DESKTOP_V1.md)
-- [Panduan Pengguna Alpha](docs/PANDUAN_PENGGUNA_ALPHA.md)
+- [Panduan Pengguna untuk paket rilis](docs/PANDUAN_PENGGUNA.md)
+- [Panduan Alpha internal](docs/PANDUAN_PENGGUNA_ALPHA.md)
+- [Draf listing Projects.co.id](docs/PRODUCT_LISTING_PROJECTS_CO_ID.md)
 - [Checklist Rilis](docs/RELEASE_CHECKLIST.md)
 
 ## Gerbang rilis
