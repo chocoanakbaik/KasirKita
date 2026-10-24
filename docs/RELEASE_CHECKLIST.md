@@ -38,7 +38,8 @@
 - [ ] Test keyboard-emulated scanner input and manually typed SKU; unknown codes must not alter the cart.
 - [ ] Verify XLSX summary/daily sheets and PDF report readability, file extensions, and content.
 - [ ] Verify receipt TXT/PDF exports match the persisted sale snapshot, including tax, totals, and item quantities.
-- [ ] Install `KasirKita-Setup.exe` on a clean Windows test machine; verify install, Start Menu/Desktop shortcuts, launch, uninstall, and preservation of user data.
+- [ ] Verify the CI installer smoke test passes: silent install, executable/uninstaller presence, Start Menu shortcut, and silent uninstall.
+- [ ] Install `KasirKita-Setup.exe` on a clean Windows test machine; verify GUI launch, user workflow, backup/restore, shortcut behavior, uninstall, and user-data preservation.
 - [ ] Verify portable ZIP and installer SHA-256 checksums against the generated files.
 - [ ] Try insufficient cash and insufficient stock; verify no partial sale is saved.
 - [ ] Verify disabled-tax, exclusive-tax, and inclusive-tax cases against independently calculated examples.
