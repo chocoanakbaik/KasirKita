@@ -13,11 +13,11 @@ Saat aplikasi pertama kali berjalan pada instalasi yang belum memiliki status tu
 
 ## 2. Login pemilik dan pegawai
 
-Pada awal instalasi, pilih **Daftar akun pemilik pertama**. Isi nama, NIK 16 digit, kata sandi minimal 10 karakter, lalu simpan kode pemulihan satu kali di tempat aman di luar komputer. Pendaftaran awal otomatis ditutup setelah akun pemilik dibuat.
+Pada awal instalasi, pilih **Daftar akun pemilik pertama**. Isi nama, ID login 4–32 karakter, kata sandi minimal 10 karakter, lalu simpan kode pemulihan satu kali di tempat aman di luar komputer. Pendaftaran awal otomatis ditutup setelah akun pemilik dibuat.
 
 Saat aplikasi dibuka berikutnya, pilih jalur **Login sebagai Pemilik** atau **Login sebagai Pegawai**. Jalur tersebut terpisah; akun pemilik tidak dapat masuk lewat formulir pegawai dan sebaliknya. Pemilik dapat membuka **Akun Pegawai** untuk membuat akun pegawai, menonaktifkan akun, dan mengatur ulang kata sandi pegawai.
 
-Pemulihan kata sandi pemilik memerlukan NIK dan kode pemulihan sekali pakai, kemudian menetapkan kata sandi baru. NIK saja tidak cukup. Kode pemulihan disimpan di luar aplikasi dan tidak dapat ditampilkan ulang setelah pendaftaran. Kata sandi lama tidak pernah diekspor.
+Pemulihan kata sandi pemilik memerlukan ID login dan kode pemulihan sekali pakai, kemudian menetapkan kata sandi baru. ID login saja tidak cukup. Kode pemulihan disimpan di luar aplikasi dan tidak dapat ditampilkan ulang setelah pendaftaran. Kata sandi lama tidak pernah diekspor.
 
 ## 3. Menambahkan produk
 
