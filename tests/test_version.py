@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class VersionConsistencyTests(unittest.TestCase):
     def test_version_uses_semantic_numeric_triplet(self):
-        self.assertRegex(__version__, r"^\\d+\\.\\d+\\.\\d+$")
+        self.assertRegex(__version__, r"^\d+\.\d+\.\d+$")
 
     def test_inno_setup_installer_matches_application_version(self):
         installer = (ROOT / "installer" / "KasirKita.iss").read_text(encoding="utf-8")
