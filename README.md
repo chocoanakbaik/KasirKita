@@ -5,7 +5,7 @@ Repositori dokumen ketentuan penggunaan dan kebijakan resmi The Choco Studios (T
 ## Dokumen
 - [Terms of Service](TERMS_OF_SERVICE.md)
 - [Privacy Policy](PRIVACY_POLICY.md)
-- Acceptable Use Policy (sedang disusun)
+- [Acceptable Use Policy](ACCEPTABLE_USE_POLICY.md)
 
 ## Pengelola
 The Choco Studios (TCS), studio independen yang dikelola oleh Hasby Prasetya Saprudin.
