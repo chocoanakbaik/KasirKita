@@ -1,5 +1,7 @@
 # Brand Assets
 
-The official TCS identity asset supplied by the owner is stored as `tcs-logo-resmi.svg`. Preserve this source file unchanged whenever it is reused.
+`tcs-logo-resmi.svg` is the official TCS logo artwork reconstructed as vector paths directly from the owner-provided reference image uploaded on 6 November 2026. The previous generated/incorrect TCS logo artwork has been replaced.
 
-KasirKita-specific logo exports remain separate from TCS identity assets. Do not create, redraw, or substitute the TCS logo. Any additional export must be derived from an owner-approved source and must not alter the original mark.
+Preserve this logo file unchanged when reusing it. Do not add a top line, redraw the lettering, alter the frame, recolor it, or substitute another design.
+
+KasirKita-specific identity assets remain separate from TCS identity assets.
