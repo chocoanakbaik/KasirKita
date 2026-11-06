@@ -11,7 +11,7 @@ This directory contains first-party visual assets for KasirKita Desktop. Assets 
 
 ## Brand asset status
 
-The official KasirKita logo is still being prepared separately. Do not invent or permanently substitute a logo before the approved files arrive. When supplied, preserve the original master and add appropriately sized exports for the application window, splash screen, and Windows icon.
+The official TCS identity source is stored separately at `brand/tcs-logo-resmi.svg`. Preserve it unchanged. KasirKita-specific visual assets remain separate and must not be confused with or substituted for the TCS identity.
 
 ## Compatibility and cost rules
 
