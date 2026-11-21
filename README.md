@@ -12,4 +12,4 @@ Dokumen ketentuan dan kebijakan resmi The Choco Studios (TCS), studio independen
 - [Privacy Policy](PRIVACY_POLICY.en.md)
 - [Acceptable Use Policy](ACCEPTABLE_USE_POLICY.en.md)
 
-Jika versi terjemahan berbeda, versi Bahasa Indonesia menjadi acuan utama kecuali diwajibkan lain oleh hukum. Logo halaman web: `logo-tcs.svg`. Kontak: thechocostudio@gmail.com.
+Jika versi terjemahan berbeda, versi Bahasa Indonesia menjadi acuan utama kecuali diwajibkan lain oleh hukum. Logo halaman web: `logo-tcs.svg`. Kontak: thechocostudios@gmail.com.
