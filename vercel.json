@@ -30,5 +30,29 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "kasirkita-fawn.vercel.app"
+        }
+      ],
+      "destination": "https://legal.thechocostudios.bond/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "terms-of-service-lake.vercel.app"
+        }
+      ],
+      "destination": "https://legal.thechocostudios.bond/:path*",
+      "permanent": true
+    }
   ]
 }
