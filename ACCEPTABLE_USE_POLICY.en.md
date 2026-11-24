@@ -2,7 +2,7 @@
 
 **Administrator:** The Choco Studios (TCS)  
 **Effective date:** 6 November 2026  
-**Contact:** thechocostudio@gmail.com
+**Contact:** thechocostudios@gmail.com
 
 All users and Participants must use TCS services, systems, applications, projects, and resources lawfully, securely, and responsibly, in accordance with the Terms of Service and official TCS rules.
 
@@ -23,4 +23,4 @@ TCS may reject contributions, restrict features, suspend accounts, or terminate 
 
 Specific projects or services may impose additional rules, provided they do not conflict with applicable law or the TCS Terms of Service. Indonesian is the primary language; if translations differ, the Indonesian version prevails unless otherwise required by law.
 
-**Contact:** thechocostudio@gmail.com
+**Contact:** thechocostudios@gmail.com
