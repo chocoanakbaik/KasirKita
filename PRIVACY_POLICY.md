@@ -1,7 +1,7 @@
 # Kebijakan Privasi The Choco Studios (TCS)
 
 **Tanggal berlaku:** 6 November 2026  
-**Kontak privasi:** thechocostudio@gmail.com
+**Kontak privasi:** thechocostudios@gmail.com
 
 The Choco Studios (TCS) menghormati privasi pengguna dan Peserta ekosistemnya. Data yang diproses, tujuan, dan masa penyimpanan dapat berbeda menurut fitur, arsitektur, serta layanan. Setiap layanan yang mengumpulkan data wajib menjelaskan praktik aktualnya melalui pemberitahuan khusus.
 
@@ -33,4 +33,4 @@ Layanan TCS tidak boleh digunakan untuk memproses data secara melawan hukum, ter
 Bahasa Indonesia merupakan bahasa utama. Terjemahan dapat disediakan untuk kebutuhan internasional. Apabila terjemahan berbeda, versi Bahasa Indonesia menjadi acuan utama, kecuali diwajibkan lain oleh hukum. TCS dapat memperbarui kebijakan ini dengan menerbitkan versi dan tanggal berlaku terbaru.
 
 ## 10. Kontak
-Pertanyaan atau permintaan privasi dapat disampaikan ke **thechocostudio@gmail.com**. Kebijakan ini bersifat umum; layanan dengan praktik pemrosesan khusus harus menyediakan pemberitahuan privasi yang relevan.
+Pertanyaan atau permintaan privasi dapat disampaikan ke **thechocostudios@gmail.com**. Kebijakan ini bersifat umum; layanan dengan praktik pemrosesan khusus harus menyediakan pemberitahuan privasi yang relevan.
