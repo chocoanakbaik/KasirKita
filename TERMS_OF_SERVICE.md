@@ -3,7 +3,7 @@
 **Pengelola:** The Choco Studios (TCS)  
 **Dikelola oleh:** Hasby Prasetya Saprudin  
 **Tanggal berlaku:** 6 November 2026  
-**Kontak:** thechocostudio@gmail.com
+**Kontak:** thechocostudios@gmail.com
 
 ## 1. Ruang Lingkup
 Ketentuan ini mengatur akses, keanggotaan, partisipasi, dan penggunaan sistem, layanan, aplikasi, proyek, dokumentasi, repositori, serta inisiatif yang berada di dalam atau dikelola oleh The Choco Studios (TCS), kecuali terdapat ketentuan khusus. TCS adalah studio independen yang dikelola oleh Hasby Prasetya Saprudin dan telah berdiri sejak 2023. Istilah Peserta mencakup pihak yang secara resmi bergabung atau berpartisipasi dalam ekosistem TCS.
@@ -45,4 +45,4 @@ Bahasa Indonesia merupakan bahasa utama Ketentuan ini. Terjemahan bahasa lain da
 Ketentuan ini ditafsirkan berdasarkan hukum Republik Indonesia. Perselisihan diupayakan terlebih dahulu untuk diselesaikan melalui komunikasi dan musyawarah dengan itikad baik, tanpa menghilangkan hak menempuh mekanisme hukum yang tersedia.
 
 ## 14. Kontak
-Pertanyaan terkait Ketentuan ini dapat disampaikan ke **thechocostudio@gmail.com**. Ketentuan ini bersifat umum; ketentuan khusus layanan dapat melengkapinya sepanjang sesuai hukum yang berlaku.
+Pertanyaan terkait Ketentuan ini dapat disampaikan ke **thechocostudios@gmail.com**. Ketentuan ini bersifat umum; ketentuan khusus layanan dapat melengkapinya sepanjang sesuai hukum yang berlaku.
