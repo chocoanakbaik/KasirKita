@@ -21,8 +21,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.12"]
+        include:
+          # Python 3.8 is retained for the current PyInstaller 5 packaging baseline.
+          # Pin Ubuntu 22.04 because ubuntu-latest has moved to a runner image
+          # that no longer provides Python 3.8 through actions/setup-python.
+          - os: ubuntu-22.04
+            python-version: "3.8"
+          - os: windows-latest
+            python-version: "3.8"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: windows-latest
+            python-version: "3.12"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
