@@ -3,7 +3,7 @@
 **Administrator:** The Choco Studios (TCS)  
 **Managed by:** Hasby Prasetya Saprudin  
 **Effective date:** 6 November 2026  
-**Contact:** thechocostudio@gmail.com
+**Contact:** thechocostudios@gmail.com
 
 ## 1. Scope
 These Terms govern access to, membership in, participation in, and use of systems, services, applications, projects, documentation, repositories, and initiatives within or managed by The Choco Studios (TCS), unless service-specific terms apply. TCS is an independent studio managed by Hasby Prasetya Saprudin and has been established since 2023. “Participant” means a party officially joining or participating in the TCS ecosystem.
@@ -45,4 +45,4 @@ Indonesian is the primary language of these Terms. Translations may be provided 
 These Terms are governed by the laws of the Republic of Indonesia. Disputes should first be addressed through good-faith communication and deliberation, without prejudice to the right to pursue available legal remedies.
 
 ## 14. Contact
-Questions regarding these Terms may be sent to **thechocostudio@gmail.com**. These are general terms; service-specific terms may supplement them insofar as they comply with applicable law.
+Questions regarding these Terms may be sent to **thechocostudios@gmail.com**. These are general terms; service-specific terms may supplement them insofar as they comply with applicable law.
