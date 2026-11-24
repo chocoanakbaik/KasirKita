@@ -2,7 +2,7 @@
 
 **Pengelola:** The Choco Studios (TCS)  
 **Tanggal berlaku:** 6 November 2026  
-**Kontak:** thechocostudio@gmail.com
+**Kontak:** thechocostudios@gmail.com
 
 Setiap pengguna dan Peserta wajib menggunakan layanan, sistem, aplikasi, proyek, dan sumber daya TCS secara sah, aman, bertanggung jawab, serta sesuai Ketentuan Layanan dan peraturan resmi TCS.
 
@@ -23,4 +23,4 @@ TCS dapat menolak kontribusi, membatasi fitur, menangguhkan akun, atau mengakhir
 
 Ketentuan proyek atau layanan tertentu dapat menetapkan aturan tambahan sepanjang tidak bertentangan dengan hukum dan Ketentuan Layanan TCS. Bahasa Indonesia merupakan bahasa utama; jika terjemahan berbeda, versi Bahasa Indonesia menjadi acuan, kecuali diwajibkan lain oleh hukum.
 
-**Kontak:** thechocostudio@gmail.com
+**Kontak:** thechocostudios@gmail.com
