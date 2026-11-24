@@ -1,7 +1,7 @@
 # The Choco Studios (TCS) Privacy Policy
 
 **Effective date:** 6 November 2026  
-**Privacy contact:** thechocostudio@gmail.com
+**Privacy contact:** thechocostudios@gmail.com
 
 The Choco Studios (TCS) respects the privacy of users and Participants in its ecosystem. Data processed, purposes, and retention periods may vary by feature, architecture, and service. Each service that collects data must describe its actual practices in a relevant notice.
 
@@ -33,4 +33,4 @@ TCS services must not be used to process data unlawfully, including children’s
 Indonesian is the primary language. Translations may be provided for international use. If a translation differs, the Indonesian version prevails unless otherwise required by law. TCS may publish revisions and their effective dates.
 
 ## 10. Contact
-Privacy questions or requests may be sent to **thechocostudio@gmail.com**. This policy is general; services with specific processing practices must provide a relevant privacy notice.
+Privacy questions or requests may be sent to **thechocostudios@gmail.com**. This policy is general; services with specific processing practices must provide a relevant privacy notice.
