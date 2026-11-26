@@ -30,4 +30,5 @@ en:{navDocs:"Documents",navContact:"Contact",eyebrow:"Official documents",title:
 const docs={id:["TERMS_OF_SERVICE.md","PRIVACY_POLICY.md","ACCEPTABLE_USE_POLICY.md"],en:["TERMS_OF_SERVICE.en.md","PRIVACY_POLICY.en.md","ACCEPTABLE_USE_POLICY.en.md"]};
 function setLanguage(lang){const t=translations[lang]||translations.id;document.documentElement.lang=lang;document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(t[k])el.textContent=t[k]});["tosLink","privacyLink","aupLink"].forEach((id,i)=>document.getElementById(id).href="./"+docs[lang][i]);}
 document.getElementById("language").addEventListener("change",e=>setLanguage(e.target.value));setLanguage("id");
-</script></body></html>
+</script><script defer src="/tcs-community-widget.js" data-theme="legal"></script>
+</body></html>
